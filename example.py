@@ -37,4 +37,4 @@ for f in range(20):
 sec.plot(mu0, 'y')
 sec.plot(mu, 'g')
 sec.plot(projec, '.r')
-plt.show()
+#plt.show()

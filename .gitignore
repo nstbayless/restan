@@ -1,2 +1,5 @@
 *.pyc
 __pycache__/
+activate
+pypy3/
+vpy/
