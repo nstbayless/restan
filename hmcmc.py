@@ -1,7 +1,7 @@
 # Hamiltonian Markov Monte Carlo algorithm
 
-from autograd import grad
-import autograd.numpy as np
+from ad import adnumber
+import numpy as np
 import numpy.random
 
 # performs hamiltonian markov monte carlo.
@@ -39,14 +39,13 @@ def HMCMCUpdate(u, qStart, d, epsilon, L):
   # momentum (TODO: confirm this sampling method)
   p = numpy.random.randn(d)
   q = qStart
-  gradu = grad(u)
   uStart = u(q)
   
   # leapfrog steps: (TODO: confirm this? seems to only differ on first and last step...)
-  p -= gradu(q) * epsilon / 2
+  p -= numpy.array(u(adnumber(q)).gradient(q)) * epsilon / 2
   for i in range(1, L - 2):
     q += p * epsilon
-    p -= gradu(q) * epsilon
+    p -= numpy.array(u(adnumber(q)).gradient(q)) * epsilon
   q += p/2
   
   # new loss

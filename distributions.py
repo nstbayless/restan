@@ -1,6 +1,6 @@
 # various loss functions
 
-import autograd.numpy as np
+import numpy as np
 
 def stdnormal(q):
   s = 0

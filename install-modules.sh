@@ -6,9 +6,9 @@ if [[ $version =~ "PyPy" ]];
 then
   echo "Installing dependencies..."
   # install dependencies
-  echo "This command may hang for several minutes..."
-  sleep 2
-  python -m pip install autograd
+  python -m pip install ad
+  python -m pip install matplotlib
+  python -m pip install numpy
 else
   echo "Cannot install dependencies --"
   echo "You must first set up the virtual environment!"
