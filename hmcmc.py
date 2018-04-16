@@ -25,15 +25,14 @@ def HMCMC(u, init, epsilon, L, sampleCount):
   # generate samples (TODO: warmup phase)
   while len(samples) < sampleCount:
     sample = HMCMCUpdate(u, q.copy(), d, epsilon, L)
-    if (sample != None).any():
+    if not sample is None:
       samples.append(sample)
       
       # update position
       q = sample
   
   return samples
-  
-  
+
 # Attempts to generate a single sample for HMCMC
 # may reject, in which case None is returned.
 def HMCMCUpdate(u, qStart, d, epsilon, L):
@@ -41,6 +40,7 @@ def HMCMCUpdate(u, qStart, d, epsilon, L):
   p = numpy.random.randn(d)
   q = qStart
   gradu = grad(u)
+  uStart = u(q)
   
   # leapfrog steps: (TODO: confirm this? seems to only differ on first and last step...)
   p -= gradu(q) * epsilon / 2
@@ -49,4 +49,16 @@ def HMCMCUpdate(u, qStart, d, epsilon, L):
     p -= gradu(q) * epsilon
   q += p/2
   
-  return q
+  # new loss
+  uEnd = u(q)
+  
+  if uEnd <= uStart:
+    # accept
+    return q
+  else:
+    if numpy.random.uniform() <= np.exp(uStart - uEnd):
+      # accept
+      return q
+    else:
+      # reject
+      return None
