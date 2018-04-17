@@ -6,36 +6,38 @@
 #include "expressionTypes.h"
 #include "pi/pi.h"
 
+using namespace restan;
+
 //// ExpressionConstant ////
 
-ExpressionConstant::ExpressionConstant(ExpressionValue c): value(c) { }
-ExpressionConstant::ExpressionValue getValue()
+restan::ExpressionConstant::ExpressionConstant(ExpressionValue c): value(c) { }
+ExpressionValue restan::ExpressionConstant::getValue()
 {
   return value;
 }
 
 //// ExpressionParameter ////
-ExpressionParameter::ExpressionParameter(unsigned int parameterIndex):
+restan::ExpressionParameter::ExpressionParameter(unsigned int parameterIndex):
   parameterIndexStart(parameterIndex),
   parameterIndexEnd(parameterIndex + 1)
 { }
-ExpressionParameter::ExpressionParameter(unsigned int parameterIndexStart, unsigned int parameterIndexEnd):
+restan::ExpressionParameter::ExpressionParameter(unsigned int parameterIndexStart, unsigned int parameterIndexEnd):
   parameterIndexStart(parameterIndexStart),
   parameterIndexEnd(parameterIndexEnd)
 { }
-ExpressionParameter::getValue):
+ExpressionValue restan::ExpressionParameter::getValue()
 {
   // TODO
 }
 
 //// ExpressionArithmetic ////
-ExpressionArithmetic::ExpressionArithmetic(Operation op, Expression* lhs, Expression* rhs):
+restan::ExpressionArithmetic::ExpressionArithmetic(Operation op, Expression* lhs, Expression* rhs):
   operation(op),
   lhs(lhs),
   rhs(rhs)
 { }
 
-ExpressionArithmetic::getValue):
+ExpressionValue restan::ExpressionArithmetic::getValue()
 {
   // TODO
 }

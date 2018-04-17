@@ -15,7 +15,7 @@ namespace restan
   {
   public:  
     // loss value and gradient of given state
-    GradValue getLoss(const Vector q& parameters)
+    GradValue getLoss(const adept::Vector& parameters);
 
   private:
     //// these variables are fixed from evaluation to evaluation (getLoss) ////
@@ -28,17 +28,11 @@ namespace restan
     
     // parameter vector
     adept::aVector params;
-    
-    // cached expressions
-    adept::aVector tparams;
-  } pi;
+  };
   
-  
+  extern Pi pi;
 
-  GradValue getLoss(const Vector q&)
-  {
-    return pi.getLoss(q);
-  }
+  GradValue getLoss(const adept::Vector& q);
 }
 
 #endif

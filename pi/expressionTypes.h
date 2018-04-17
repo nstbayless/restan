@@ -24,9 +24,9 @@ namespace restan
   class ExpressionParameter : public Expression
   {
   public:
-    ExpressionArithmetic(unsigned int parameterIndexStart);
+    ExpressionParameter(unsigned int parameterIndexStart);
     // parameters from a half-open range of indices:
-    ExpressionArithmetic(unsigned int parameterIndexStart, unsigned int parameterIndexEnd);
+    ExpressionParameter(unsigned int parameterIndexStart, unsigned int parameterIndexEnd);
     virtual ExpressionValue getValue() override;
   private:
     unsigned int parameterIndexStart;
