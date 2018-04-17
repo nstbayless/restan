@@ -11,7 +11,7 @@ using namespace adept;
 
 adept::Stack stack;
 
-restan::GradValue normal(Vector _q)
+restan::GradValue normal(const adept::Vector& _q)
 {
   aVector q(_q);
   Vector e3 = {0, 0, 0, 1, 0, 0};

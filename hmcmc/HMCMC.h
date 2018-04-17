@@ -17,7 +17,7 @@ namespace restan
   // L: hyperparameter (leapfrog step count)
   // samples: number of samples
   // samplesOut: returns an array of samples
-  void HMCMC(GradValue (*u)(adept::Vector), adept::Vector q0, double epsilon, unsigned int L, unsigned int samples, adept::Vector* samplesOut);
+  void HMCMC(GradValue (*u)(const adept::Vector&), adept::Vector q0, double epsilon, unsigned int L, unsigned int samples, adept::Vector* samplesOut);
 }
 
 #endif

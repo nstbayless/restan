@@ -22,11 +22,11 @@ public:
   SampleRejected() {}
 };
 
-void HMCMCUpdate(GradValue (*u)(adept::Vector), Vector q, const double epsilon, const unsigned int L, Vector* sampleOut);
+void HMCMCUpdate(GradValue (*u)(const adept::Vector&), Vector q, const double epsilon, const unsigned int L, Vector* sampleOut);
 
 bool randomized = false;
 
-void restan::HMCMC(GradValue (*u)(adept::Vector), const Vector q0, double epsilon, unsigned int L, unsigned int samples, Vector* samplesOut)
+void restan::HMCMC(GradValue (*u)(const adept::Vector&), const Vector q0, double epsilon, unsigned int L, unsigned int samples, Vector* samplesOut)
 { 
   if (!randomized)
     srand(time(0));
@@ -55,7 +55,7 @@ default_random_engine generator;
 normal_distribution<double> stdnormal(0, 1.0);
 uniform_real_distribution<double> stdunif(0, 1.0);
 
-void HMCMCUpdate(GradValue (*u)(adept::Vector), Vector q, const double epsilon, const unsigned int L, Vector* sampleOut)
+void HMCMCUpdate(GradValue (*u)(const adept::Vector&), Vector q, const double epsilon, const unsigned int L, Vector* sampleOut)
 {
   unsigned int d = q.size();
   

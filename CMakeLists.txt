@@ -9,7 +9,7 @@ include_directories(.)
 file(GLOB _SRC
     "*.cpp"
     "hmcmc/*.cpp"
-    "loss/*.cpp"
+    "pi/*.cpp"
 )
 
 add_executable(restan
