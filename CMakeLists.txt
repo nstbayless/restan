@@ -16,4 +16,4 @@ add_executable(restan
   ${_SRC}
 )
 
-target_link_libraries(restan armadillo)
+target_link_libraries(restan openblas adept)
