@@ -19,18 +19,18 @@ class ExpressionValue;
 auto syntax = R"(
         Code <- OptionalData OptionalParameters Model
         OptionalData <-
-        OptionalParameters <-
-        Model <- 'model' '{' Statements '}'
-        ListOfDeclarationOrStatement <- DeclarationOrStatement ';' ListOfDeclarationOrStatement /
+        OptionalParameters <- 'parameters' '{' ( Declaration ';' )* '}' /
+        OptionalTransformedParameters <- 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
+        Model <- 'model' Statement
         DeclarationOrStatement <- Declaration / Statement
 
         # Declarations
         Declaration <- DeclarationLHS / DeclarationLHS AssignOp Expression
-        DeclarationLHS <- Type Variable / Type '<' BoundsList Identifier
-        Type <- 'int' / 'real'
+        DeclarationLHS <- Type Identifier / Type '<' BoundsList Identifier
+        Type <- 'int' / 'real' / 'vector' / 'matrix'
         BoundsList <- Bound ',' BoundsList / Bound '>'
-        Bound <- BoundType '=' Constant #--
-        BoundType <- 'lower' / 'upper' #--
+        Bound <- BoundType '=' Constant
+        BoundType <- 'lower' / 'upper'
 
         # Statements
         Statements <- Statement ';' Statements /
@@ -67,22 +67,20 @@ typedef  adept::aMatrix (*fnExpr) ( adept::aMatrix *, unsigned int);
 // parses stan code string
 void restan::parseStan(std::string stanCode)
 {
-  // parameter names
-  std::vector<std::string> parameterNames;
+  // variable / parameter names
+  std::map<std::string, unsigned int> parameterNames;
+  unsigned int parameterNameCount = 0;
+  std::map<std::string, unsigned int> variableNames;
+  unsigned int variableNameCount = 0;
+
+  // fixed lookups
   std::map<std::string, fnExpr> distributionMap;
   std::map<std::string, fnExpr> functionMap;
-  std::map<std::string, unsigned int> AssignMap = {
-    {"=", restan::EQUALS},
-    {"<-", restan::EQUALS},
-    {"+=", restan::PLUSEQUALS},
-    {"-=", restan::MINUSEQUALS},
-    {"*=", restan::TIMESEQUALS},
-    {"/=", restan::DIVEQUALS}
-  };
 
-  bool declaringVariables;
+  // currently declaring variables or parameters?
+  bool declaringVariables = true;
 
-  parameterNames.push_back("target");
+  variableNames["target"] = variableNameCount++;
 
   parser p(syntax);
   p["Code"] = [&](const SemanticValues& sv)
@@ -92,6 +90,69 @@ void restan::parseStan(std::string stanCode)
     pi.setLossStatement(modelStatement);
   };
   std::cout<<"parsed syntax\n";
+  p["OptionalParameters"] = [&](const SemanticValues& sv)
+  {
+    declaringVariables = false;
+    for (int i = 0; i < sv.size(); i ++)
+      sv[i].get<Statement*>(); // trigger;
+  };
+  p["OptionalTransformedParameters"] = [&](const SemanticValues& sv)
+  {
+    declaringVariables = true;
+    Statement
+    for (int i = 0; i < sv.size(); i ++)
+    {
+      Statement* s = sv[i].get<Statement*>();
+      if (s)
+      {
+
+      }
+    }
+  };
+  p["Model"] = [&](const SemanticValues& sv)
+  {
+    Statement* modelStatement = sv[2].get<Statement*>();
+    return modelStatement;
+  };
+  p["DeclarationOrStatement"] = [&](const SemanticValues& sv)
+  {
+    return sv[0].get<Expression*>();
+  }
+  p["Declaration"] = [&](const SemanticValues& sv)
+  {
+    if (sv.choice == 1)
+    {
+      case 1: // type f = blah
+        if (!declaringVariables)
+        {
+          throw ParseError("Attempted to assign to a parameter");
+        }
+        Statement* declareAssign = new statementAssign(sv[0].get<unsigned int>(), sv[2].get<Expression*>());
+        exHeap.push_back(declareAssign);
+        return declareAssign;
+    }
+    else
+    {
+      sv[0].get(); // trigger
+      return static_cast<Statement*>(nullptr);
+    }
+  };
+  p["DeclarationLHS"] = [&](const SemanticValues& sv)
+  {
+    std::string varName = sv[sv.size() - 1].get<std::string>();
+    if (variableNames.count(varName) > 0 || parameterNames.count(varName) > 0)
+      throw ParseException(std::string("Attempted to redefine variable or parameter ") + varName);
+    if (declaringVariables)
+    {
+      // variable
+      return variableNames[varname] = variableNamesCount++;
+    }
+    else
+    {
+      // parameter
+      return parameterNames[varname] = parameterNamesCount++;
+    }
+  };
   p["Statements"] = [&](const SemanticValues& sv)
   {
     switch (sv.choice())
@@ -135,7 +196,11 @@ void restan::parseStan(std::string stanCode)
         // += statement conversion
         Expression* fn = new ExpressionFunction(func, args, argVec.size());
         exHeap.push_back(fn);
-        Statement* s = new StatementAssign(restan::PLUSEQUALS, fn);
+        Expression* targetValue = new ExpressionVariable(variableNames["target"])
+        exHeap.push_back(targetValue);
+        Expression* sum = new ExpressionArithmetic(restan::PLUS, targetValue, fn);
+        exHeap.push_back(sum);
+        Statement* s = new StatementAssign(variableNames["target"], sum);
         stHeap.push_back(s);
         return s;
       }
@@ -143,11 +208,50 @@ void restan::parseStan(std::string stanCode)
       case 2: // relOp
       {
         unsigned int variableIndex = sv[0].get<unsigned int>();
-        Statement* s = new StatementAssign(assignMap[sv[1].get<std::string>()], variableIndex, sv[2].get<Expression*>());
+        Expression* rhs = sv[2].get<Expression*>();
+        std::string assignOp = sv[1].get<std::string>();
+        if (assignOp.compare("==") != 0 && assignOp.compare("<-") != 0)
+        {
+          // relative operations
+          restan::Operation op;
+          if (assignOp.compare("+=") == 0)
+          {
+            op = restan::PLUS;
+          }
+          else if (assignOp.compare("-=") == 0)
+          {
+            op = restan::MINUS;
+          }
+          else if (assignOp.compare("*=") == 0)
+          {
+            op = restan::TIMES;
+          }
+          else if (assignOp.compare("/=") == 0)
+          {
+            op = restan::DIV;
+          }
+
+          Expression* varexpr = new ExpressionVariable(variableIndex);
+          exHeap.push_back(varexpr);
+          rhs = new ExpressionArithmetic(op, varexpr, rhs);
+        }
+        Statement* s = new StatementAssign(variableIndex, rhs);
         stHeap.push_back(s);
         return s;
       }
-      case 3: // todo:
+      case 3: // function
+      {
+        StatementFunction* fn = new StatementFunction(sv[0].get<Expression*>);
+        stHeap.push_back(fn);
+        return fn;
+      }
+      case 4: // block
+      {
+        Statement** list = new Statement*[sv.size()];
+        for (int i = 0; i < sv.size(); i++)
+          list[i] = sv[i].get<Statement*>();
+        StatementFunction* fn = new StatementBlock(list, sv.size());
+      }
     }
   }
   p["AssignOp"] = [&](const SemanticValues& sv)
