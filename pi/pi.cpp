@@ -45,6 +45,20 @@ void restan::Pi::setStatement(Statement *s)
   statement = s;
 }
 
+
+ExpressionValue restan::Pi::getVariables(int startIndex, int endIndex)
+{
+  int size = endIndex - startIndex;
+  adept::aMatrix mVars(1,size); 
+  mVars << vars(range(startIndex, endIndex -1));
+  return mVars;
+}
+
+void restan::Pi::setVariables(const adept::Vector& variables) 
+{
+  vars = variables;
+}
+
 //Setter only used for testing purposes
 void restan::Pi::setParams(const adept::Vector& parameters)
 {

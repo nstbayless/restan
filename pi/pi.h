@@ -22,6 +22,9 @@ namespace restan
     ExpressionValue getParams(int startIndex, int endIndex);
     void  setStatement(Statement* s);
     void executeStatement();
+    void setVariables(const adept::Vector& parameters);
+    ExpressionValue getVariables(int startIndex, int endIndex);
+
     //TODO: Used for testing purposes
     void setParams(const adept::Vector& parameters);
 
@@ -35,6 +38,9 @@ namespace restan
     adept::Stack stack;
     // parameter vector
     adept::aVector params;
+    // variable vector
+    adept::aVector vars;
+
     // statement list
     Statement* statement;
   };

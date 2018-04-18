@@ -16,7 +16,9 @@ statements(statements)
 
 void restan::StatementBody::execute()
 {
-
+	for (int i = 0; i < length; i++) {
+		statements[i].execute();
+	}
 }
 //// StatementAssign ////
 restan::StatementAsign::StatementAsign(restan::AssignOperator op, int varIndex, Expression* expression)
@@ -26,7 +28,20 @@ restan::StatementAsign::StatementAsign(restan::AssignOperator op, int varIndex, 
 {}	
 void restan::StatementAsign::execute()
 {
+	ExpressionValue rhsVal = expression->getValue();
 
+	switch(op) {
+		case EQUALS:
+			break;
+		case PLUSEQUALS:
+			break;
+		case MINUSEQUALS:
+			break;
+		case TIMESEQUALS:
+			break;
+		default:
+			std::cout << "Assignment Operator invalid!!" << std::endl;
+	}
 }
 //// StatementFunction ////
 restan::StatementFunction::StatementFunction(ExpressionValue (*sf)(ExpressionValue[], int))
