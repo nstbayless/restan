@@ -36,12 +36,12 @@ auto syntax = R"(
         RelOp <- '+=' / '-=' / '*=' / '/=' 
         
         # Expressions
-        Expression <- ExpressionTerm ('+' Expression)* (ExpressionSubtractionSuffixes)*
-        ExpressionSubtractionSuffixes <- '-' ExpressionTerm (ExpressionSubtractionSuffixes)*
-        //ExpressionSubtractionSuffix <- '-' ExpressionTerm //TODO - use + syntax?
-        ExpressionTerm <- ExpressionFactor ('*' ExpressionTerm)* (ExpressionDivisionSuffixes)*
-        ExpressionDivisionSuffixes <- '/' ExpressionFactor (ExpressionDivisionSuffixes)*
-        //ExpressionDivisionSuffix <- '/' ExpressionFactor
+        Expression <- ExpressionTerm '+' Expression / ExpressionTerm ExpressionSubtractionSuffixes / ExpressionTerm
+        ExpressionSubtractionSuffixes <- ExpressionSubtractionSuffix ExpressionSubtractionSuffixes / ExpressionSubtractionSuffix
+        ExpressionSubtractionSuffix <- '-' ExpressionTerm
+        ExpressionTerm <- ExpressionFactor '*' ExpressionTerm / ExpressionFactor ExpressionDivisionSuffixes / ExpressionFactor
+        ExpressionDivisionSuffixes <- ExpressionDivisionSuffix ExpressionDivisionSuffixes / ExpressionDivisionSuffix
+        ExpressionDivisionSuffix <- '/' ExpressionFactor
         ExpressionFactor <- FunctionExpression / '(' Expression ')' / Constant / Variable
         FunctionExpression <- Identifier '(' ArgList
         ArgList <- Expression ',' ArgList / Expression ')' / ')'
