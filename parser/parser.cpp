@@ -10,6 +10,7 @@
 #include <vector>
 
 using namespace peg;
+using namespace restan;
 
 auto syntax = 
 R"(
@@ -19,7 +20,7 @@ R"(
     Expression <- 'increment_log_prob' '(' Expression ')' / '(' Expression ')' / Constant / Parameter / Expression '+' Expression / Expression '*' Expression / Expression '-' Expression / Expression '/' Expression
     Constant <- < [0-9]+ >
     Parameter <- < [a-zA-Z_]+ >
-    %whitespace <- [ \t\n]*
+    %whitespace <- [ \t\n\r]*
 )";
 
 std::vector<Expression*> exHeap;
@@ -35,13 +36,14 @@ void restan::parseStan(std::string stanCode)
   p["Code"] = [&](const SemanticValues& sv)
   {
     return sv[0].get<Expression*>();
-  }
+  };
   
   p["Expressions"] = [&](const SemanticValues& sv)
   {
-    switch (sv.choice)
+    switch (sv.choice())
     {
       case 0: // Definition Definitions
+      {
         Expression* exprNext = sv[1].get<Expression*>();
         if (exprNext)
         {
@@ -51,14 +53,15 @@ void restan::parseStan(std::string stanCode)
         }
         else
            return sv[0].get<Expression*>();
+      }
       default: // '}'
-        return nullptr;
+        return static_cast<Expression*>(nullptr);
     }
-  }
+  };
   
   p["Expression"] = [&](const SemanticValues& sv)
   {
-    switch (sv.choice)
+    switch (sv.choice())
     {
       case 0: // increment_log_prob
       case 1: // ()
@@ -68,32 +71,38 @@ void restan::parseStan(std::string stanCode)
       case 3: // parameter
         return sv[0].get<Expression*>();
       case 4: // +
+      {
         Expression* expr = new ExpressionArithmetic(restan::PLUS, sv[0].get<Expression*>(), sv[1].get<Expression*>());
         exHeap.push_back(expr);
         return expr;
+      }
       case 5: // *
+      {
         Expression* expr = new ExpressionArithmetic(restan::TIMES, sv[0].get<Expression*>(), sv[1].get<Expression*>());
         exHeap.push_back(expr);
         return expr;
+      }
       case 6: // -
+      {
         Expression* expr = new ExpressionArithmetic(restan::MINUS, sv[0].get<Expression*>(), sv[1].get<Expression*>());
         exHeap.push_back(expr);
         return expr;
+      }
       case 7: // /
+      {
         Expression* expr = new ExpressionArithmetic(restan::DIV, sv[0].get<Expression*>(), sv[1].get<Expression*>());
         exHeap.push_back(expr);
         return expr;
-      default: // '}'
-        return;
+      }
     }
-  }
+  };
   
   p["Constant"] = [&](const SemanticValues& sv)
   {
     Expression* expr = new ExpressionConstant(stoi(sv.token(), nullptr, 10));
     exHeap.push_back(expr);
     return expr;
-  }
+  };
   
   p["Parameter"] = [&](const SemanticValues& sv)
   {
@@ -109,11 +118,11 @@ void restan::parseStan(std::string stanCode)
     }
     
     // add new parameter
-    parameterNames.push_back(sv.token())
+    parameterNames.push_back(sv.token());
     Expression* expr = new ExpressionParameter(sv.size() - 1);
     exHeap.push_back(expr);
     return expr;
-  }
+  };
 }
 
 // frees parsed expressions
