@@ -33,3 +33,7 @@ make
 ## Examples
 
 Once compiled, run `restan` to generate gaussian noise
+
+##Testing
+- Add https://raw.githubusercontent.com/CatchOrg/Catch2/master/single_include/catch.hpp to the directory
+- Tutorial https://github.com/catchorg/Catch2/blob/master/docs/tutorial.md#top

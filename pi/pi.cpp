@@ -1,4 +1,6 @@
 #include "pi.h"
+#include <adept.h>
+#include <adept_arrays.h>
 
 using namespace restan;
 using namespace adept;
@@ -20,7 +22,27 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   return GradValue(loss.value(), params.get_gradient());
 }
 
-GradValue getLoss(const adept::Vector& q)
+ExpressionValue restan::Pi::getParams(int startIndex, int endIndex) 
+{
+  //TODO: Check if range access returns new Vector
+  int size = endIndex - startIndex;
+  adept::aMatrix mParams(1,size); 
+  mParams << params(range(startIndex, endIndex -1));
+  return mParams;
+}
+
+void restan::Pi::setParams(const adept::Vector& parameters)
+{
+  params = parameters;
+}
+
+
+GradValue restan::getLoss(const adept::Vector& q)
 {
   return pi.getLoss(q);
+}
+
+void restan::setParams(const adept::Vector& parameters)
+{
+  pi.setParams(parameters);
 }

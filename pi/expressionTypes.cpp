@@ -15,6 +15,9 @@ ExpressionValue restan::ExpressionConstant::getValue()
 {
   return value;
 }
+restan::ExpressionConstant::ExpressionConstant(double c): value(1, 1) {
+  value(0,0) = c;
+}
 
 //// ExpressionParameter ////
 restan::ExpressionParameter::ExpressionParameter(unsigned int parameterIndex):
@@ -28,6 +31,8 @@ restan::ExpressionParameter::ExpressionParameter(unsigned int parameterIndexStar
 ExpressionValue restan::ExpressionParameter::getValue()
 {
   // TODO
+  // Returns a vector of all parameters
+  return pi.getParams(parameterIndexStart, parameterIndexEnd);
 }
 
 //// ExpressionArithmetic ////

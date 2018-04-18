@@ -14,8 +14,23 @@ file(GLOB _SRC
     "parser/*.cpp"
 )
 
+file(GLOB _MAIN
+    "main/*.cpp"
+)
+
+file (GLOB _TEST
+    "tests/*.cpp"
+)
+
 add_executable(restan
   ${_SRC}
+  ${_MAIN}
+)
+
+add_executable(stan-tests
+  ${_SRC}
+  ${_TEST}
 )
 
 target_link_libraries(restan openblas adept)
+target_link_libraries(stan-tests openblas adept)
