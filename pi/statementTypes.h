@@ -29,14 +29,15 @@ namespace restan
 
 
   // V ~ B x 3
-  class StatementAsign : public Statement
+  class StatementAssign : public Statement
   {
   public:
-    StatementAsign(restan::AssignOperator op, int varIndex, Expression* expression);
+    StatementAssign(restan::AssignOperator op, unsigned int startIndex, unsigned int endIndex, Expression* expression);
     virtual void execute() override;
   private:
     AssignOperator op;
-    int varIndex;
+    unsigned int startIndex;
+    unsigned int endIndex;
     Expression* expression;
   };
   

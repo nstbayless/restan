@@ -34,6 +34,18 @@ bool compareEV(ExpressionValue A, ExpressionValue B)
 	return true;
 }
 
+/*// Row order flattening of a matrix to vector
+Vector matrixToVector(ExpressionValue EV)
+{
+	Vector flattenedVector(EV.size());
+	int num_rows = EV.dimension(0);
+	int num_cols = EV.dimension(1);
+	for (int i = 0; i < num_rows; i++) {
+		flattenedVector << EV(i, range(0, num_cols-1));
+	}
+	return flattenedVector;
+}*/
+
 TEST_CASE( "Testing constant expressions") 
 {
 	adept::aMatrix A(1,1);
@@ -125,7 +137,16 @@ TEST_CASE( " ExpressionVariable testing" )
 	ExpressionValue trueMultipleVariables(1,3);	trueMultipleVariables << 10, 11, 12;
 	ExpressionVariable multipleVariables(0,3);
 	REQUIRE( compareEV(trueMultipleVariables, multipleVariables.getValue()) );
+}
 
+TEST_CASE( "Statement testing" )
+{
+	Vector vec1(5); vec1 << 1,2,3,4,5;
+	Vector vec2(3); vec2 << 10, 11, 12;
+	
+	vec1(range(1,3)) = vec2;
+	std::cout << vec1 << std::endl;
+	
 
 }
 /*

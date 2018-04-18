@@ -7,6 +7,7 @@
 #include "pi/pi.h"
 
 using namespace restan;
+using namespace adept;
 
 //// StatementBody ////
 restan::StatementBody::StatementBody(Statement* statements, int length)
@@ -21,23 +22,24 @@ void restan::StatementBody::execute()
 	}
 }
 //// StatementAssign ////
-restan::StatementAsign::StatementAsign(restan::AssignOperator op, int varIndex, Expression* expression)
+restan::StatementAssign::StatementAssign(restan::AssignOperator op, unsigned int startIndex, unsigned int endIndex, Expression* expression)
 :	op(op),
-	varIndex(varIndex),
+	startIndex(startIndex),
+	endIndex(endIndex),
 	expression(expression)
 {}	
-void restan::StatementAsign::execute()
+
+void restan::StatementAssign::execute()
 {
+	//ASSUME::variables is a vector so we cast expression->getValue to a vector
+	//TODO:: 1xn or nx1?
 	ExpressionValue rhsVal = expression->getValue();
+
+
 
 	switch(op) {
 		case EQUALS:
-			break;
-		case PLUSEQUALS:
-			break;
-		case MINUSEQUALS:
-			break;
-		case TIMESEQUALS:
+			updateVariables(rhsVal, startIndex, endIndex);
 			break;
 		default:
 			std::cout << "Assignment Operator invalid!!" << std::endl;

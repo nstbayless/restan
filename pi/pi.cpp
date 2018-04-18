@@ -27,7 +27,7 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   return GradValue(loss.value(), params.get_gradient());
 }
 
-ExpressionValue restan::Pi::getParams(int startIndex, int endIndex) 
+ExpressionValue restan::Pi::getParams(unsigned int startIndex, unsigned int endIndex) 
 {
   int size = endIndex - startIndex;
   adept::aMatrix mParams(1,size); 
@@ -46,9 +46,9 @@ void restan::Pi::setStatement(Statement *s)
 }
 
 
-ExpressionValue restan::Pi::getVariables(int startIndex, int endIndex)
+ExpressionValue restan::Pi::getVariables(unsigned int startIndex, unsigned int endIndex)
 {
-  int size = endIndex - startIndex;
+  unsigned int size = endIndex - startIndex;
   adept::aMatrix mVars(1,size); 
   mVars << vars(range(startIndex, endIndex -1));
   return mVars;
@@ -57,6 +57,11 @@ ExpressionValue restan::Pi::getVariables(int startIndex, int endIndex)
 void restan::Pi::setVariables(const adept::Vector& variables) 
 {
   vars = variables;
+}
+
+void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex) 
+{
+  vars(range(startIndex, endIndex)) = vals(0, range(startIndex, endIndex-1));
 }
 
 //Setter only used for testing purposes
@@ -74,4 +79,14 @@ void restan::setParams(const adept::Vector& parameters)
 void restan::setVariables(const adept::Vector& variables) 
 {
   pi.setVariables(variables);
+}
+
+void restan::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex) 
+{
+  pi.updateVariables(vals, startIndex, endIndex);
+}
+
+ExpressionValue restan::getVariables(unsigned int startIndex, unsigned int endIndex)
+{
+  pi.getVariables(startIndex, endIndex);
 }
