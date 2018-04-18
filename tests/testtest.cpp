@@ -43,6 +43,13 @@ TEST_CASE( "Testing constant expressions")
 	REQUIRE( myConstant.getValue()(0,0) == A(0,0) );
 }
 
+TEST_CASE( "Testing double ExpressionConstant constructor")
+{
+	double constantDouble = 5.0;
+	restan::ExpressionConstant myConstant(constantDouble);
+	REQUIRE( myConstant.getValue()(0,0) == constantDouble); 
+}
+
 TEST_CASE( "Testing parameter expressions" )
 {
 	//Create testVector
