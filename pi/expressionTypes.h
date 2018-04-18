@@ -34,6 +34,18 @@ namespace restan
     unsigned int parameterIndexEnd;
   };
 
+  // variable expression
+  class ExpressionVariable : public Expression
+  {
+  public:
+    ExpressionVariable(unsigned int variableIndex);
+    ExpressionVariable(unsigned int variableIndexStart, unsigned int variableIndexEnd);
+    virtual ExpressionValue getValue() override;
+  private:
+    unsigned int variableIndexStart;
+    unsigned int variableIndexEnd;
+  };
+
   // a mathematical operation type
   enum Operation
   {
@@ -54,6 +66,8 @@ namespace restan
     Expression* rhs;
     virtual ExpressionValue getValue() override;
   };
+
+
 }
 
 #endif 

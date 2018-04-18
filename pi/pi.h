@@ -48,8 +48,9 @@ namespace restan
   extern Pi pi;
 
   GradValue getLoss(const adept::Vector& q);
+  //TEST HELPERS
   void setParams(const adept::Vector& parameters);
-
+  void setVariables(const adept::Vector& variables);
 }
 
 #endif

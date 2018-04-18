@@ -34,6 +34,23 @@ ExpressionValue restan::ExpressionParameter::getValue()
   return pi.getParams(parameterIndexStart, parameterIndexEnd);
 }
 
+
+//// ExpressionVariable ////
+restan::ExpressionVariable::ExpressionVariable(unsigned int variableIndex):
+  variableIndexStart(variableIndex),
+  variableIndexEnd(variableIndex + 1)
+{ }
+restan::ExpressionVariable::ExpressionVariable(unsigned int variableIndexStart, unsigned int variableIndexEnd):
+  variableIndexStart(variableIndexStart),
+  variableIndexEnd(variableIndexEnd)
+{ }
+ExpressionValue restan::ExpressionVariable::getValue()
+{
+  // Returns a vector of all parameters
+  return pi.getVariables(variableIndexStart, variableIndexEnd);
+}
+
+
 //// ExpressionArithmetic ////
 restan::ExpressionArithmetic::ExpressionArithmetic(Operation op, Expression* lhs, Expression* rhs):
   operation(op),

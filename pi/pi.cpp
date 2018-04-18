@@ -71,3 +71,7 @@ void restan::setParams(const adept::Vector& parameters)
   pi.setParams(parameters);
 }
 
+void restan::setVariables(const adept::Vector& variables) 
+{
+  pi.setVariables(variables);
+}

@@ -113,11 +113,26 @@ TEST_CASE( "Testing arithmetic expressions" )
 	std::cout << subVal << std::endl;
 	REQUIRE( compareEV(subVal, trueSubResult));
 }
-/*
-Tests to write:
-Expression constant: Return constant
-Expression parameter: Return the index in the vector
-Expression arithmetic: Evaluation the lhs, Evaluate the rhs, switch on op
 
-TODO: Add a constructor for const that takes a double
+TEST_CASE( " ExpressionVariable testing" ) 
+{
+	Vector variables = {10, 11, 12, 13};
+	setVariables(variables);
+
+	ExpressionVariable singleVariable(1);
+	REQUIRE( singleVariable.getValue()(0,0) == 11);
+
+	ExpressionValue trueMultipleVariables(1,3);	trueMultipleVariables << 10, 11, 12;
+	ExpressionVariable multipleVariables(0,3);
+	REQUIRE( compareEV(trueMultipleVariables, multipleVariables.getValue()) );
+
+
+}
+/*
+TESTS:
+Matrix/Vector operations
+
+Statement constructors/getters/setters
+
+ExpressionVariables
 */
