@@ -5,11 +5,13 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 include_directories(.)
+include_directories(peglib)
 
 file(GLOB _SRC
     "*.cpp"
     "hmcmc/*.cpp"
     "pi/*.cpp"
+    "parser/*.cpp"
 )
 
 add_executable(restan

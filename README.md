@@ -17,6 +17,9 @@ Download and install (in this order):
    You'll also need to configure the install to `/usr/lib` on Ubuntu.
  - adept 2 (>=2.0.5) from [here](http://www.met.reading.ac.uk/clouds/adept/download.html)
    - configure with `./configure --with-blas=openblas`
+ - cpp-peglib from [here](https://github.com/yhirose/cpp-peglib)
+   - you may need to install gcc-4.9; see this [StackOverflow](https://askubuntu.com/questions/466651/how-do-i-use-the-latest-gcc-on-ubuntu)
+     if there are any complications.
 
 ### Compilation
 
