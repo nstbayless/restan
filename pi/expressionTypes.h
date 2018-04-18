@@ -15,7 +15,7 @@ namespace restan
   {
   public:
     ExpressionConstant(ExpressionValue c);
-    ExpressionConstant(double c);
+    ExpressionConstant(double c); 
     virtual ExpressionValue getValue() override;
   private:
     ExpressionValue value;
