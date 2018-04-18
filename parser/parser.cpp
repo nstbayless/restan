@@ -10,12 +10,15 @@
 #include <vector>
 
 using namespace peg;
-using namespace restan;
+using namespace restan;  
 
 auto syntax = R"(
-        Code <- 'data' '{' ListOfDeclarationOrStatement 'parameters' '{' ListOfDeclarationOrStatement 'transformed' 'parameters' '{' ListOfDeclarationOrStatement 'model' '{' Statements
-        
-        ListOfDeclarationOrStatement <- DeclarationOrStatement ';' ListOfDeclarationOrStatement / '}'
+        Code <- OptionalData OptionalParameters OptionalTransformedParameters Model
+        OptionalData <- 
+        OptionalParameters <- 
+        OptionalTransformedParameters <- 'transformed' 'parameters' '{' ListOfDeclarationOrStatement '}'
+        Model <- 'model' '{' Statements '}'
+        ListOfDeclarationOrStatement <- DeclarationOrStatement ';' ListOfDeclarationOrStatement / 
         DeclarationOrStatement <- Declaration / Statement
         
         # Declarations
@@ -27,7 +30,7 @@ auto syntax = R"(
         BoundType <- 'lower' / 'upper'
         
         # Statements
-        Statements <- Statement ';' Statements / '}'
+        Statements <- Statement ';' Statements /
         Statement <- Variable '~' Distribution '(' ArgList / Variable AssignOp Expression / Variable RelOp Expression / FunctionExpression
         AssignOp <- '=' / '<-'
         RelOp <- '+=' / '-=' / '*=' / '/=' 
