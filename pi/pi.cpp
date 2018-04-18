@@ -7,6 +7,11 @@ using namespace adept;
 
 Pi restan::pi;
 
+void restan::Pi::executeStatement() 
+{
+  statement->execute();
+}
+
 GradValue restan::Pi::getLoss(const adept::Vector& parameters)
 {
   params = parameters;
@@ -24,25 +29,31 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
 
 ExpressionValue restan::Pi::getParams(int startIndex, int endIndex) 
 {
-  //TODO: Check if range access returns new Vector
   int size = endIndex - startIndex;
   adept::aMatrix mParams(1,size); 
   mParams << params(range(startIndex, endIndex -1));
   return mParams;
 }
 
+GradValue restan::getLoss(const adept::Vector& q)
+{
+  return pi.getLoss(q);
+}
+
+void restan::Pi::setStatement(Statement *s)
+{
+  statement = s;
+}
+
+//Setter only used for testing purposes
 void restan::Pi::setParams(const adept::Vector& parameters)
 {
   params = parameters;
 }
 
 
-GradValue restan::getLoss(const adept::Vector& q)
-{
-  return pi.getLoss(q);
-}
-
 void restan::setParams(const adept::Vector& parameters)
 {
   pi.setParams(parameters);
 }
+

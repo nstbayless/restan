@@ -30,7 +30,6 @@ restan::ExpressionParameter::ExpressionParameter(unsigned int parameterIndexStar
 { }
 ExpressionValue restan::ExpressionParameter::getValue()
 {
-  // TODO
   // Returns a vector of all parameters
   return pi.getParams(parameterIndexStart, parameterIndexEnd);
 }
@@ -42,7 +41,7 @@ restan::ExpressionArithmetic::ExpressionArithmetic(Operation op, Expression* lhs
   rhs(rhs)
 { }
 
-
+// Recursively evaluates lhs and rhs
 //TODO:: Add exception handling for linear algebra exceptions
 ExpressionValue restan::ExpressionArithmetic::getValue()
 {
