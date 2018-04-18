@@ -28,6 +28,8 @@ restan::ExpressionParameter::ExpressionParameter(unsigned int parameterIndexStar
 ExpressionValue restan::ExpressionParameter::getValue()
 {
   // TODO
+  // Returns a vector of all parameters
+  return pi.getParams(parameterIndexStart, parameterIndexEnd);
 }
 
 //// ExpressionArithmetic ////

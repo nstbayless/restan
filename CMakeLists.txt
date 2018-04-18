@@ -8,9 +8,12 @@ include_directories(.)
 
 file(GLOB _SRC
     "*.cpp"
-    "main/*.cpp"
     "hmcmc/*.cpp"
     "pi/*.cpp"
+)
+
+file(GLOB _MAIN
+    "main/*.cpp"
 )
 
 file (GLOB _TEST
@@ -19,9 +22,13 @@ file (GLOB _TEST
 
 add_executable(restan
   ${_SRC}
+  ${_MAIN}
 )
+
 add_executable(stan-tests
+  ${_SRC}
   ${_TEST}
 )
 
 target_link_libraries(restan openblas adept)
+target_link_libraries(stan-tests openblas adept)
