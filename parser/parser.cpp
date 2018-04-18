@@ -13,17 +13,41 @@ using namespace peg;
 using namespace restan;
 
 auto syntax = R"(
-        Code <- 'model' '{' Expressions
+        Code <- 'data' '{' ListOfDeclarationOrStatement 'parameters' '{' ListOfDeclarationOrStatement 'transformed' 'parameters' '{' ListOfDeclarationOrStatement 'model' '{' Statements
+        
+        ListOfDeclarationOrStatement <- DeclarationOrStatement ';' ListOfDeclarationOrStatement / '}'
+        DeclarationOrStatement <- Declaration / Statement
+        
+        # Declarations
+        Declaration <- DeclarationLHS / DeclarationLHS AssignOp Expression
+        DeclarationLHS <- Type Variable / Type '<' BoundsList Variable
+        Type <- 'int' / 'real'
+        BoundsList <- Bound ',' BoundsList / Bound '>'
+        Bound <- BoundType '=' Constant
+        BoundType <- 'lower' / 'upper'
+        
+        # Statements
+        Statements <- Statement ';' Statements / '}'
+        Statement <- Variable '~' Distribution '(' ArgList / Variable AssignOp Expression / Variable RelOp Expression / FunctionExpression
+        AssignOp <- '=' / '<-'
+        RelOp <- '+=' / '-=' / '*=' / '/=' 
+        
+        # Expressions
         Expression <- ExpressionTerm '+' Expression / ExpressionTerm ExpressionSubtractionSuffixes / ExpressionTerm
         ExpressionSubtractionSuffixes <- ExpressionSubtractionSuffix ExpressionSubtractionSuffixes / ExpressionSubtractionSuffix
         ExpressionSubtractionSuffix <- '-' ExpressionTerm
         ExpressionTerm <- ExpressionFactor '*' ExpressionTerm / ExpressionFactor ExpressionDivisionSuffixes / ExpressionFactor
         ExpressionDivisionSuffixes <- ExpressionDivisionSuffix ExpressionDivisionSuffixes / ExpressionDivisionSuffix
         ExpressionDivisionSuffix <- '/' ExpressionFactor
-        ExpressionFactor <-'increment_log_prob' '(' Expression ')' / '(' Expression ')' / Constant / Parameter
-        Expressions <- Expression ';' Expressions / '}'
+        ExpressionFactor <- FunctionExpression / '(' Expression ')' / Constant / Variable
+        FunctionExpression <- Identifier '(' ArgList
+        ArgList <- Expression ',' ArgList / Expression ')' / ')'
         Constant <- < [0-9]+ >
-        Parameter <- < [a-zA-Z_]+ >
+        Variable <- Identifier
+        Distribution <- Identifier
+        
+        # General
+        Identifier <- < [a-zA-Z_]+ >
         %whitespace <- [ \t\n\r]*
     )";
 
