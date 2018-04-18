@@ -4,6 +4,7 @@
 #include <adept_arrays.h>
 #include "pi/pi.h"
 #include "pi/expressionTypes.h"
+#include "pi/statementTypes.h"
 using namespace restan;
 using namespace adept;
 
@@ -141,12 +142,35 @@ TEST_CASE( " ExpressionVariable testing" )
 
 TEST_CASE( "Statement testing" )
 {
-	Vector vec1(5); vec1 << 1,2,3,4,5;
-	Vector vec2(3); vec2 << 10, 11, 12;
-	
-	vec1(range(1,3)) = vec2;
-	std::cout << vec1 << std::endl;
-	
+	Vector variables = {10, 11, 12, 13};
+	setVariables(variables);
+	Vector parameters = {1,2,3,4,5,6};
+	setParams(parameters);
+
+	ExpressionVariable varEXPR(0,4);
+	std::cout << varEXPR.getValue() << std::endl;
+
+	//[v1, v2] = 2*[p1, p2]
+	ExpressionParameter paramsExpr(1,3); //11, 12
+	ExpressionConstant constExpr(2.0);
+
+	ExpressionArithmetic arithExpr(TIMES, &constExpr, &paramsExpr);
+
+	StatementAssign sa(restan::EQUALS, 1, 3, &arithExpr);
+	sa.execute();
+
+/*	
+	//Testing updateVariables
+	ExpressionValue hardCodedMatrix(1,2); hardCodedMatrix << 100, 101;
+	std::cout << hardCodedMatrix << std::endl;
+	std::cout << hardCodedMatrix(0, range(0, 1));
+
+	updateVariables(hardCodedMatrix, 1,3);*/
+
+	//variables should now be {10, 4, 6, 13}
+	std::cout << varEXPR.getValue() << std::endl;
+	ExpressionValue expectedAssignedVariables(1,4); expectedAssignedVariables << 10, 4, 6, 13;
+	REQUIRE( compareEV(varEXPR.getValue(), expectedAssignedVariables) );
 
 }
 /*

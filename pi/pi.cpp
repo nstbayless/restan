@@ -51,6 +51,8 @@ ExpressionValue restan::Pi::getVariables(unsigned int startIndex, unsigned int e
   unsigned int size = endIndex - startIndex;
   adept::aMatrix mVars(1,size); 
   mVars << vars(range(startIndex, endIndex -1));
+  //std::cout << "GetVariables" << std::endl;
+  //std::cout << vars(range(startIndex, endIndex -1)) << std::endl;
   return mVars;
 }
 
@@ -61,7 +63,8 @@ void restan::Pi::setVariables(const adept::Vector& variables)
 
 void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex) 
 {
-  vars(range(startIndex, endIndex)) = vals(0, range(startIndex, endIndex-1));
+  unsigned int size = endIndex - startIndex;
+  vars(range(startIndex, endIndex-1)) = vals(0, range(0, size-1));
 }
 
 //Setter only used for testing purposes
@@ -86,7 +89,3 @@ void restan::updateVariables(const ExpressionValue& vals, unsigned int startInde
   pi.updateVariables(vals, startIndex, endIndex);
 }
 
-ExpressionValue restan::getVariables(unsigned int startIndex, unsigned int endIndex)
-{
-  pi.getVariables(startIndex, endIndex);
-}

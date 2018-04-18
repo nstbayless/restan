@@ -52,7 +52,6 @@ namespace restan
   //TEST HELPERS
   void setParams(const adept::Vector& parameters);
   void setVariables(const adept::Vector& variables);
-  ExpressionValue getVariables(unsigned int startIndex, unsigned int endIndex);
   void updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex);
 }
 
