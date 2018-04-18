@@ -26,25 +26,23 @@ auto syntax = R"(
 
         # Declarations
         Declaration <- DeclarationLHS / DeclarationLHS AssignOp Expression
-        DeclarationLHS <- Type Variable / Type '<' BoundsList Variable
+        DeclarationLHS <- Type Variable / Type '<' BoundsList Identifier
         Type <- 'int' / 'real'
         BoundsList <- Bound ',' BoundsList / Bound '>'
-        Bound <- BoundType '=' Constant
-        BoundType <- 'lower' / 'upper'
+        Bound <- BoundType '=' Constant #--
+        BoundType <- 'lower' / 'upper' #--
 
         # Statements
         Statements <- Statement ';' Statements /
-        Statement <- VariableExpression '~' Distribution '(' ArgList ')' / Variable AssignOp Expression / Variable RelOp Expression / FunctionExpression / '{' Statements '}'
+        Statement <- VariableExpression '~' Distribution '(' ArgList ')' / Variable AssignOp Expression / Variable RelOp Expression / FunctionExpression / '{' Statements '}' #V
         AssignOp <- '=' / '<-'
         RelOp <- '+=' / '-=' / '*=' / '/='
 
         # Expressions
-        Expression <- ExpressionTerm '+' Expression / ExpressionTerm ExpressionSubtractionSuffixes / ExpressionTerm
-        ExpressionSubtractionSuffixes <- ExpressionSubtractionSuffix ExpressionSubtractionSuffixes / ExpressionSubtractionSuffix
-        ExpressionSubtractionSuffix <- '-' ExpressionTerm
-        ExpressionTerm <- ExpressionFactor '*' ExpressionTerm / ExpressionFactor ExpressionDivisionSuffixes / ExpressionFactor
-        ExpressionDivisionSuffixes <- ExpressionDivisionSuffix ExpressionDivisionSuffixes / ExpressionDivisionSuffix
-        ExpressionDivisionSuffix <- '/' ExpressionFactor
+        Expression <- ExpressionTerm (TermOp ExpressionTerm)*
+        ExpressionTerm <- ExpressionFactor (FactorOp ExpressionFactor)*
+        TermOp <- '+' / '-'
+        FactorOp <- '*' / '/'
         ExpressionFactor <- FunctionExpression / '(' Expression ')' / Constant / VariableExpression
         FunctionExpression <- Identifier '(' ArgList ')'
         ArgList <- Expression ',' ArgList / Expression '|' ArgList / Expression /
@@ -81,6 +79,8 @@ void restan::parseStan(std::string stanCode)
     {"*=", restan::TIMESEQUALS},
     {"/=", restan::DIVEQUALS}
   };
+
+  bool declaringVariables;
 
   parameterNames.push_back("target");
 
@@ -185,7 +185,7 @@ void restan::parseStan(std::string stanCode)
     if (distributionMap[sv.token()])
       return distributionMap[sv.token()]
     else
-      throw ParseError("Unknown distribution: \"" + sv.token() + "\"");
+      throw ParseError(std::string("Unknown distribution \"") + sv.token() + "\"");
   }
   p["Expressions"] = [&](const SemanticValues& sv)
   {
@@ -320,10 +320,7 @@ void restan::parseStan(std::string stanCode)
         return i;
       }
     }
-
-    // add new parameter
-    parameterNames.push_back(sv.token());
-    return sv.size() - 1;
+    throw ParseError(std::string("Unknown parameter or variable \"") + sv.token() + "\"");
   };
 
   p["Variable"] = [&]
@@ -338,8 +335,7 @@ void restan::parseStan(std::string stanCode)
     }
 
     // add new variable
-    variableNames.push_back(sv.token());
-    return sv.size() - 1;
+    throw ParseError(std::string("Unknown variable \"") + sv.token() + "\"");
   }
 
   p["VariableExpression"] = [&]
