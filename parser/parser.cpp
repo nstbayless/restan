@@ -12,16 +12,16 @@
 using namespace peg;
 using namespace restan;
 
-auto syntax = 
-R"(
-    # Grammar for Stan...
-    Code <- 'model' '{' Expressions
-    Expressions <- Expression Expressions / '}'
-    Expression <- 'increment_log_prob' '(' Expression ')' / '(' Expression ')' / Constant / Parameter / Expression '+' Expression / Expression '*' Expression / Expression '-' Expression / Expression '/' Expression
-    Constant <- < [0-9]+ >
-    Parameter <- < [a-zA-Z_]+ >
-    %whitespace <- [ \t\n\r]*
-)";
+auto syntax = R"(
+        Code <- 'model' '{' Expressions
+        Expression <- ExpressionTerm '+' Expression / ExpressionTerm
+        ExpressionTerm <- ExpressionFactor '*' ExpressionTerm / ExpressionFactor
+        ExpressionFactor <-'increment_log_prob' '(' Expression ')' / '(' Expression ')' / Constant / Parameter
+        Expressions <- Expression ';' Expressions / '}'
+        Constant <- < [0-9]+ >
+        Parameter <- < [a-zA-Z_]+ >
+        %whitespace <- [ \t\n\r]*
+    )";
 
 std::vector<Expression*> exHeap;
 
@@ -35,9 +35,10 @@ void restan::parseStan(std::string stanCode)
   parser p(syntax);
   p["Code"] = [&](const SemanticValues& sv)
   {
+    std::cout<<"took root production\n";
     return sv[0].get<Expression*>();
   };
-  
+  std::cout<<"parsed syntax\n";
   p["Expressions"] = [&](const SemanticValues& sv)
   {
     switch (sv.choice())
@@ -63,37 +64,41 @@ void restan::parseStan(std::string stanCode)
   {
     switch (sv.choice())
     {
-      case 0: // increment_log_prob
-      case 1: // ()
-        return sv[0].get<Expression*>();
-      case 2: // constant
-        return sv[0].get<Expression*>();
-      case 3: // parameter
-        return sv[0].get<Expression*>();
-      case 4: // +
+      case 0: // +
       {
         Expression* expr = new ExpressionArithmetic(restan::PLUS, sv[0].get<Expression*>(), sv[1].get<Expression*>());
         exHeap.push_back(expr);
         return expr;
       }
-      case 5: // *
+      case 1:
+        return sv[0].get<Expression*>();
+    }
+  };
+  
+  p["ExpressionTerm"] = [&](const SemanticValues& sv)
+  {
+    switch (sv.choice())
+    {
+      case 0: // *
       {
         Expression* expr = new ExpressionArithmetic(restan::TIMES, sv[0].get<Expression*>(), sv[1].get<Expression*>());
         exHeap.push_back(expr);
         return expr;
       }
-      case 6: // -
-      {
-        Expression* expr = new ExpressionArithmetic(restan::MINUS, sv[0].get<Expression*>(), sv[1].get<Expression*>());
-        exHeap.push_back(expr);
-        return expr;
-      }
-      case 7: // /
-      {
-        Expression* expr = new ExpressionArithmetic(restan::DIV, sv[0].get<Expression*>(), sv[1].get<Expression*>());
-        exHeap.push_back(expr);
-        return expr;
-      }
+      case 1:
+        return sv[0].get<Expression*>();
+    }
+  };
+  
+  p["ExpressionFactor"] = [&](const SemanticValues& sv)
+  {
+    switch (sv.choice())
+    {
+      case 0:
+      case 1:
+      case 2:
+      case 3:
+        return sv[0].get<Expression*>();
     }
   };
   
@@ -123,6 +128,17 @@ void restan::parseStan(std::string stanCode)
     exHeap.push_back(expr);
     return expr;
   };
+  
+  std::cout<<"set up actions\n";
+  
+  p.enable_packrat_parsing();
+  Expression* e;
+  p.parse(stanCode.c_str(), e);
+  pi.setLossExpression(e);
+  
+  std::cout<<"parsed\n";
+  if (e)
+    std::cout << "non-null expression returned\n";
 }
 
 // frees parsed expressions

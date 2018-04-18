@@ -7,9 +7,8 @@ using namespace adept;
 
 Pi restan::pi;
 
-GradValue restan::Pi::getLoss(const adept::Vector& parameters)
+GradValue restan::Pi::getLoss()
 {
-  params = parameters;
   adouble loss = 0;
   stack.new_recording();
   loss = (lossExpression->getValue())(0,0);
@@ -37,12 +36,14 @@ void restan::Pi::setParams(const adept::Vector& parameters)
 }
 
 
-GradValue restan::getLoss(const adept::Vector& q)
+void restan::Pi::setLossExpression(Expression* e)
 {
-  return pi.getLoss(q);
+  lossExpression = e;
 }
 
-void restan::setParams(const adept::Vector& parameters)
+
+GradValue restan::getLoss(const adept::Vector& q)
 {
-  pi.setParams(parameters);
+  pi.setParams(q);
+  return pi.getLoss();
 }

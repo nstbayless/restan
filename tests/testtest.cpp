@@ -55,7 +55,7 @@ TEST_CASE( "Testing parameter expressions" )
 	//Create testVector
 	Vector testV = {1.0, 2.0, 3.0};
 
-	setParams(testV);
+	pi.setParams(testV);
 
 
 	ExpressionParameter myParam(0);

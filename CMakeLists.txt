@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.0)
+cmake_minimum_required(VERSION 3.2)
 project (restan)
 
 set(CMAKE_BUILD_TYPE Debug)
@@ -23,14 +23,18 @@ file (GLOB _TEST
 )
 
 add_executable(restan
-  ${_SRC}
   ${_MAIN}
 )
 
 add_executable(stan-tests
-  ${_SRC}
   ${_TEST}
 )
 
-target_link_libraries(restan openblas adept)
-target_link_libraries(stan-tests openblas adept)
+add_library(restan-common
+  ${_SRC}
+)
+
+target_link_libraries(restan-common openblas adept)
+
+target_link_libraries(restan restan-common openblas adept)
+target_link_libraries(stan-tests restan-common openblas adept)
