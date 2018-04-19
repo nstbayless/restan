@@ -270,6 +270,16 @@ void restan::parseStan(std::string stanCode)
   {
     return sv.token();
   }
+  p["TermOp"] = [&](const SemanticValues& sv)
+  {
+    return sv.token();
+  }
+  p["FactorOp"] = [&](const SemanticValues& sv)
+  {
+    return sv.token();
+  }
+
+
   p["ArgList"] = [&](const SemanticValues& sv)
   {
     // very bad code that passes vectors around :C
@@ -305,10 +315,10 @@ void restan::parseStan(std::string stanCode)
 	Expression* expr = sv[0].get<Expression*>();
     for (int i=1; i<sv.size(); i+=2)
     {
-		if (sv[i].get<char>() == '+') {
+		if (sv[i].get<std::string>().compare("+") == 0) {
 			expr = new ExpressionArithmetic(restan::PLUS, expr, sv[i+1].get<Expression*>());
 			exHeap.push_back(expr);
-		} else if (sv[i].get<char>() == '-') {
+		} else if (sv[i].get<std::string>().compare("-") == 0) {
 			expr = new ExpressionArithmetic(restan::MINUS, expr, sv[i+1].get<Expression*>());
 			exHeap.push_back(expr);
 		} else {
@@ -320,10 +330,14 @@ void restan::parseStan(std::string stanCode)
 
   p["FunctionExpression"] = [&](const SemanticValues& sv)
   {
-        fnExpr func = sv[0].get<fnExpr>();
-		//TODO: please check and confirm this
-        std::vector<Expression*> argVec(sv.begin()+2, sv.end());
-        argVec.insert(argVec.begin(), varExpr);
+        std::string funcId = sv[0].get<std::string>();
+		if (functionMap.find(funcId) == functionMap.end() ) {
+      		throw ParseError(std::string("Did not find functionId at line");
+		}
+			
+		fnExpr func = functionMap[funcId];
+
+        std::vector<Expression*> argVec(sv.begin()+1, sv.end());
 
         // copy vector into array
         Expression** args = new Expression*[argVec.size()];
@@ -340,10 +354,10 @@ void restan::parseStan(std::string stanCode)
 	Expression* expr = sv[0].get<Expression*>();
     for (int i=1; i<sv.size(); i+=2)
     {
-		if (sv[i].get<char>() == '*') {
+		if (sv[i].get<std::string>().compare("*") == 0) {
 			expr = new ExpressionArithmetic(restan::TIMES, expr, sv[i+1].get<Expression*>());
 			exHeap.push_back(expr);
-		} else if (sv[i].get<char>() == '/') {
+		} else if (sv[i].get<std::string>().compare("/") == 0) {
 			expr = new ExpressionArithmetic(restan::DIV, expr, sv[i+1].get<Expression*>());
 			exHeap.push_back(expr);
 		} else {
@@ -360,7 +374,7 @@ void restan::parseStan(std::string stanCode)
       case 0:
 		return sv[0].get<Expression*>();
       case 1:
-		return sv[1].get<Expression*>();
+		return sv[0].get<Expression*>();
       case 2:
         return sv[0].get<Expression*>();
       case 3:
