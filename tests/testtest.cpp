@@ -115,17 +115,17 @@ TEST_CASE( "Testing arithmetic expressions" )
 	ExpressionValue trueAddResult(1,3); trueAddResult << 5, 7, 9;
 	ExpressionValue trueSubResult(1,3); trueSubResult << -3, -3, -3;
 
-	std::cout << vecParams.getValue() << std::endl;
-	std::cout << vecParams2.getValue() << std::endl;
+	//std::cout << vecParams.getValue() << std::endl;
+	//std::cout << vecParams2.getValue() << std::endl;
 
 	ExpressionArithmetic addArithPass(PLUS, &vecParams, &vecParams2);
 	ExpressionValue addVal = addArithPass.getValue();
-	std::cout << addVal << std::endl;
+	//std::cout << addVal << std::endl;
 	REQUIRE( compareEV(addVal, trueAddResult));
 
 	ExpressionArithmetic subArithPass(MINUS, &vecParams, &vecParams2);
 	ExpressionValue subVal = subArithPass.getValue();
-	std::cout << subVal << std::endl;
+	//std::cout << subVal << std::endl;
 	REQUIRE( compareEV(subVal, trueSubResult));
 }
 
@@ -150,7 +150,7 @@ TEST_CASE( "Statement testing" )
 	setParams(parameters);
 
 	ExpressionVariable varEXPR(0,4);
-	std::cout << varEXPR.getValue() << std::endl;
+	//std::cout << varEXPR.getValue() << std::endl;
 
 	//[v1, v2] = 2*[p1, p2]
 	ExpressionParameter paramsExpr(1,3); //11, 12
@@ -170,7 +170,7 @@ TEST_CASE( "Statement testing" )
 	updateVariables(hardCodedMatrix, 1,3);*/
 
 	//variables should now be {10, 4, 6, 13}
-	std::cout << varEXPR.getValue() << std::endl;
+	//std::cout << varEXPR.getValue() << std::endl;
 	ExpressionValue expectedAssignedVariables(1,4); expectedAssignedVariables << 10, 4, 6, 13;
 	REQUIRE( compareEV(varEXPR.getValue(), expectedAssignedVariables) );
 
@@ -196,13 +196,47 @@ TEST_CASE ( "Expression Function and Statement Function testing " )
 
 	ExpressionFunction fEXPR(restan::distributions::normal, EXPRArray, 4);
 
-	std::cout << fEXPR.getValue() << std::endl;
-
-	StatementFunction fSTMT(fEXPR);
+//	std::cout << fEXPR.getValue() << std::endl;
 }
 
+TEST_CASE ("Scalar Normal Distribution test")
+{
+	Vector parameters = {1,2,3,4,5,6}; 
+	setParams(parameters);
 
+	ExpressionConstant xEXPR(10.0);
+	ExpressionConstant muEXPR(5.0);
+	ExpressionConstant sigmaEXPR(2.0);
 
+	restan::Expression* EXPRArray[3];
+
+	EXPRArray[0] = &xEXPR; 
+	EXPRArray[1] = &muEXPR; 
+	EXPRArray[2] = &sigmaEXPR; 
+
+	ExpressionFunction fEXPR(restan::distributions::normal, EXPRArray, 3);
+
+	std::cout << fEXPR.getValue() << std::endl;
+}
+TEST_CASE ("Vector Normal Distribution test")
+{
+	Vector parameters = {12.0, 24.0, 3.0, 4.0, 0.5, 0.5}; //x x mu mu sigma
+	setParams(parameters);
+
+	ExpressionParameter xEXPR(0,2);
+	ExpressionParameter muEXPR(2,4);
+	ExpressionParameter sigmaEXPR(4);
+
+	restan::Expression* EXPRArray[3];
+
+	EXPRArray[0] = &xEXPR; 
+	EXPRArray[1] = &muEXPR; 
+	EXPRArray[2] = &sigmaEXPR; 
+
+	ExpressionFunction fEXPR(restan::distributions::normal, EXPRArray, 3);
+
+	std::cout << fEXPR.getValue() << std::endl;
+}
 /*
 TESTS:
 Matrix/Vector operations
