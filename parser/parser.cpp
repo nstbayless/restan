@@ -87,7 +87,11 @@ void restan::parseStan(std::string stanCode)
   {
     std::cout<<"took root production\n";
     Statement* modelStatement = sv[2].get<Statement*>();
-    pi.setLossStatement(modelStatement);
+    auto tppair = sv[1].get<std::pair<Statement**, int>>();
+    tppair.first[tppair.second] = modelStatement;
+    Statement* lossStatement = new StatementBody(tppair.first, tppair.second+1);
+    stHeap.push_back(lossStatement);
+    pi.setLossStatement(lossStatement);
   };
   std::cout<<"parsed syntax\n";
   p["OptionalParameters"] = [&](const SemanticValues& sv)
@@ -99,15 +103,19 @@ void restan::parseStan(std::string stanCode)
   p["OptionalTransformedParameters"] = [&](const SemanticValues& sv)
   {
     declaringVariables = true;
-    Statement
+    Statement** sl = new Statement*[sv.size()+1];
+    Statement** slo = sl;
+    stArrayHeap.push_back(sl);
     for (int i = 0; i < sv.size(); i ++)
     {
       Statement* s = sv[i].get<Statement*>();
       if (s)
       {
-
+        *slo = s;
+        slo ++;
       }
     }
+    return std::pair<Statement**, int>(sl, slo - sl);
   };
   p["Model"] = [&](const SemanticValues& sv)
   {
