@@ -10,12 +10,13 @@
 
 namespace restan
 {
+  typedef adept::aMatrix (*InterpFunc)(adept::aMatrix*, unsigned int); 
   // constant value
   class ExpressionConstant : public Expression
   {
   public:
     ExpressionConstant(ExpressionValue c);
-    ExpressionConstant(double c);
+    ExpressionConstant(double c); 
     virtual ExpressionValue getValue() override;
   private:
     ExpressionValue value;
@@ -32,6 +33,18 @@ namespace restan
   private:
     unsigned int parameterIndexStart;
     unsigned int parameterIndexEnd;
+  };
+
+  // variable expression
+  class ExpressionVariable : public Expression
+  {
+  public:
+    ExpressionVariable(unsigned int variableIndex);
+    ExpressionVariable(unsigned int variableIndexStart, unsigned int variableIndexEnd);
+    virtual ExpressionValue getValue() override;
+  private:
+    unsigned int variableIndexStart;
+    unsigned int variableIndexEnd;
   };
 
   // a mathematical operation type
@@ -54,6 +67,19 @@ namespace restan
     Expression* rhs;
     virtual ExpressionValue getValue() override;
   };
+
+  // function expression
+  class ExpressionFunction : public Expression
+  {
+  public:
+    ExpressionFunction(InterpFunc, Expression** expressions, unsigned int numExpressions);
+    virtual ExpressionValue getValue() override;
+  private:
+    InterpFunc sf;
+    Expression** expressions;
+    unsigned int numExpressions;
+  };
+
 }
 
 #endif
