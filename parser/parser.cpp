@@ -187,108 +187,58 @@ void restan::parseStan(std::string stanCode)
     else
       throw ParseError(std::string("Unknown distribution \"") + sv.token() + "\"");
   }
-  p["Expressions"] = [&](const SemanticValues& sv)
-  {
-    switch (sv.choice())
-    {
-      case 0: // Definition Definitions
-      {
-        Expression* exprNext = sv[1].get<Expression*>();
-        if (exprNext)
-        {
-           Expression* expr = new ExpressionArithmetic(restan::PLUS, sv[0].get<Expression*>(), exprNext);
-           exHeap.push_back(expr);
-           return expr;
-        }
-        else
-           return sv[0].get<Expression*>();
-      }
-      default: // '}'
-        return static_cast<Expression*>(nullptr);
-    }
-  };
 
   p["Expression"] = [&](const SemanticValues& sv)
   {
-    switch (sv.choice())
+	Expression* expr = sv[0].get<Expression*>();
+    for (int i=1; i<sv.size(); i+=2)
     {
-      case 0: // +
-      {
-        Expression* expr = new ExpressionArithmetic(restan::PLUS, sv[0].get<Expression*>(), sv[1].get<Expression*>());
-        exHeap.push_back(expr);
-        return expr;
-      }
-      case 1:
-      {
-        Expression* expr = new ExpressionArithmetic(restan::MINUS, sv[0].get<Expression*>(), sv[1].get<Expression*>());
-        exHeap.push_back(expr);
-        return expr;
-      }
-      case 2:
-        return sv[0].get<Expression*>();
-    }
+		if (sv[i].get<char>() == '+') {
+			expr = new ExpressionArithmetic(restan::PLUS, expr, sv[i+1].get<Expression*>());
+			exHeap.push_back(expr);
+		} else if (sv[i].get<char>() == '-') {
+			expr = new ExpressionArithmetic(restan::MINUS, expr, sv[i+1].get<Expression*>());
+			exHeap.push_back(expr);
+		} else {
+
+		}
+	}
+	return expr;
   };
 
-  p["ExpressionSubtractionSuffixes"] = [&](const SemanticValues& sv)
+  p["FunctionExpression"] = [&](const SemanticValues& sv)
   {
-    switch (sv.choice())
-    {
-      case 0: // -
-      {
-        Expression* expr = new ExpressionArithmetic(restan::PLUS, sv[0].get<Expression*>(), sv[1].get<Expression*>());
-        exHeap.push_back(expr);
-        return expr;
-      }
-      case 2:
-        return sv[0].get<Expression*>();
-    }
-  };
+        fnExpr func = sv[0].get<fnExpr>();
+		//TODO: please check and confirm this
+        std::vector<Expression*> argVec(sv.begin()+2, sv.end());
+        argVec.insert(argVec.begin(), varExpr);
 
-  p["ExpressionSubtractionSuffix"] = [&](const SemanticValues& sv)
-  {
-    return sv[0].get<Expression*>();
-  };
+        // copy vector into array
+        Expression** args = new Expression*[argVec.size()];
+        for (int i = 0; i < argVec.size(); i++)
+          args[i] = argVec[i];
+        exArrayHeap.push_back(args);
 
+		Expression* fn = new ExpressionFunction(func, args, argVec.size());
+        exHeap.push_back(fn);
+  }
 
   p["ExpressionTerm"] = [&](const SemanticValues& sv)
   {
-    switch (sv.choice())
+	Expression* expr = sv[0].get<Expression*>();
+    for (int i=1; i<sv.size(); i+=2)
     {
-      case 0: // *
-      {
-        Expression* expr = new ExpressionArithmetic(restan::TIMES, sv[0].get<Expression*>(), sv[1].get<Expression*>());
-        exHeap.push_back(expr);
-        return expr;
-      }
-      case 1: // /
-      {
-        Expression* expr = new ExpressionArithmetic(restan::DIV, sv[0].get<Expression*>(), sv[1].get<Expression*>());
-        exHeap.push_back(expr);
-        return expr;
-      }
-      case 2:
-        return sv[0].get<Expression*>();
-    }
-  };
+		if (sv[i].get<char>() == '*') {
+			expr = new ExpressionArithmetic(restan::TIMES, expr, sv[i+1].get<Expression*>());
+			exHeap.push_back(expr);
+		} else if (sv[i].get<char>() == '/') {
+			expr = new ExpressionArithmetic(restan::DIV, expr, sv[i+1].get<Expression*>());
+			exHeap.push_back(expr);
+		} else {
 
-  p["ExpressionDivisionSuffixes"] = [&](const SemanticValues& sv)
-  {
-    switch (sv.choice())
-    {
-      case 0: // *
-      {
-        Expression* expr = new ExpressionArithmetic(restan::TIMES, sv[0].get<Expression*>(), sv[1].get<Expression*>());
-        exHeap.push_back(expr);
-        return expr;
-      }
-      case 1:
-        return sv[0].get<Expression*>();
-    }
-  };
-
-  p["ExpressionDivisionSuffix"] = [&](const SemanticValues& sv)
-  {
-    return sv[0].get<Expression*>();
+		}
+	}
+	return expr;
   };
 
   p["ExpressionFactor"] = [&](const SemanticValues& sv)
@@ -296,8 +246,11 @@ void restan::parseStan(std::string stanCode)
     switch (sv.choice())
     {
       case 0:
+		return sv[0].get<Expression*>();
       case 1:
+		return sv[1].get<Expression*>();
       case 2:
+        return sv[0].get<Expression*>();
       case 3:
         return sv[0].get<Expression*>();
     }
@@ -323,7 +276,7 @@ void restan::parseStan(std::string stanCode)
     throw ParseError(std::string("Unknown parameter or variable \"") + sv.token() + "\"");
   };
 
-  p["Variable"] = [&]
+  p["Variable"] = [&](const SemanticValues& sv)
   {
     // lookup and see if parameter previously mentioned
     for (unsigned int i = 0; i < parameterNames.size(); i++)
@@ -338,17 +291,17 @@ void restan::parseStan(std::string stanCode)
     throw ParseError(std::string("Unknown variable \"") + sv.token() + "\"");
   }
 
-  p["VariableExpression"] = [&]
+  p["VariableExpression"] = [&](const SemanticValues& sv)
   {
     Expression* expr;
     switch (sv.choice())
     {
         case 0: // parameter
-          expr = new ExpressionParameter(sv.get[0]);
+          expr = new ExpressionParameter(sv[0].get<Expression*>());
           exHeap.push_back(expr);
           return expr;
         case 1: // variable
-          expr = new ExpressionVariable(sv.get[0]);
+          expr = new ExpressionVariable(sv[0].get<Expression*>());
           exHeap.push_back(expr);
           return expr;
     }
