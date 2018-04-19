@@ -9,10 +9,10 @@ namespace restan
 {
   namespace distributions
   {
-    InterpFunc normal; // x, mu, sigma
-    InterpFunc uniform; // x
-    InterpFunc pareto; // x, xm, alpha
-    InterpFunc Exponential; // x, lambda
+    ExpressionValue normal(ExpressionValue* exps, unsigned int); // x, mu, sigma
+    ExpressionValue uniform(ExpressionValue* exps, unsigned int); // x
+    ExpressionValue pareto(ExpressionValue* exps, unsigned int); // x, xm, alpha
+    ExpressionValue Exponential(ExpressionValue* exps, unsigned int); // x, lambda
   }
 }
 

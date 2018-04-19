@@ -3,19 +3,19 @@
 
 using namespace restan;
 
-ExpressionValue normal(ExpressionValue* exps, unsigned int) // x, mu, sigma
+ExpressionValue restan::distributions::normal(ExpressionValue* exps, unsigned int) // x, mu, sigma
 {
-  return (exps[0] - exps[1]) * (exps[0] - exps[1]).transpose() / (2.0 * exps[2](0,0));
+  return (exps[0] - exps[1]) * transpose(exps[0] - exps[1]) / (2.0 * exps[2](0,0));
 }
-ExpressionValue uniform(ExpressionValue* exps, unsigned int) // x
+ExpressionValue restan::distributions::uniform(ExpressionValue* exps, unsigned int) // x
 {
   return 0 * exps[0];
 }
-ExpressionValue pareto(ExpressionValue* exps, unsigned int) // x, xm, alpha
+ExpressionValue restan::distributions::pareto(ExpressionValue* exps, unsigned int) // x, xm, alpha
 {
     // TODO
 }
-ExpressionValue Exponential(ExpressionValue* exps, unsigned int) // x, lambda
+ExpressionValue restan::distributions::Exponential(ExpressionValue* exps, unsigned int) // x, lambda
 {
     // TODO
 }

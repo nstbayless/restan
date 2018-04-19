@@ -189,10 +189,10 @@ TEST_CASE ( "Expression Function and Statement Function testing " )
 	ExpressionParameter pEXPR1(1,3);
 	ExpressionArithmetic aEXPR(PLUS, &cEXPR1, &cEXPR2);
 
-	EXPRArray[0] = &cEXPR1;
-	EXPRArray[1] = &cEXPR2;
-	EXPRArray[2] = &pEXPR1;
-	EXPRArray[3] = &aEXPR;
+	EXPRArray[0] = &cEXPR1; //5
+	EXPRArray[1] = &cEXPR2; //10
+	EXPRArray[2] = &pEXPR1; //[2, 3]
+	EXPRArray[3] = &aEXPR; 	//15
 
 	ExpressionFunction fEXPR(restan::distributions::normal, EXPRArray, 4);
 
