@@ -13,6 +13,7 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
 
   adept::Vector v(1);
   v = 0;
+  vars(0) = 0;
   setVariables(v);
 
   // set independent variable

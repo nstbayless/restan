@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <regex>
 
 using namespace peg;
 using namespace restan;
@@ -29,14 +30,15 @@ std::string trim(std::string s)
 auto syntax = R"(
         Code <- '__BEGIN_STAN_CODE__' OptionalData OptionalParameters Model '__END_STAN_CODE__'
         OptionalData <-
-        OptionalParameters <- 'parameters' '{' ( Declaration ';' )* '}' /
+        OptionalParameters <- 'parameters' '{' ( ParameterDeclaration ';' )* '}' /
         OptionalTransformedParameters <- 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
         Model <- 'model' Statement
-        DeclarationOrStatement <- Declaration / Statement
+        DeclarationOrStatement <- VariableDeclarationDeclaration / Statement
 
         # Declarations
-        Declaration <- DeclarationLHS / DeclarationLHS AssignOp Expression
-        DeclarationLHS <- Type Identifier / Type '<' BoundsList Identifier
+        VariableDeclaration <- DeclarationLHS / DeclarationLHS AssignOp Expression
+        ParameterDeclaration <- Type Identifier ### / Type <' BoundsList Identifier
+        DeclarationLHS <- Type Identifier ### / Type '<' BoundsList Identifier
         Type <- 'int' / 'real' / 'vector' / 'matrix'
         BoundsList <- Bound ',' BoundsList / Bound '>'
         Bound <- BoundType '=' Constant
@@ -77,23 +79,63 @@ std::vector<restan::Statement**> stArrayHeap;
 
 typedef  adept::aMatrix (*fnExpr) ( adept::aMatrix *, unsigned int);
 
+void fillNames(std::string& stanCode, std::map<std::string, unsigned int>& parameterNames, int& pcount, std::map<std::string, unsigned int>& variableNames, int& vcount)
+{
+  std::regex varBlockRegex("parameters\\s*\\{([^\\}])*\\}");
+  std::regex varNamesRegex("(real|int|vector|matrix)\\s*(<[^>]*>)?\\s*([a-zA-Z0-9_]+)");
+  std::match_results<std::string::const_iterator> cdmatch;
+  std::string::difference_type searchVarIndex = 0;
+  if (std::regex_search(stanCode, cdmatch, varBlockRegex))
+  {
+    std::match_results<std::string::const_iterator> matchParams;
+    searchVarIndex = cdmatch.position() + cdmatch.length();
+
+    auto searchIndex = cdmatch.position(1);
+
+    while (true)
+    {
+      if (std::regex_search(stanCode.substr(searchIndex, searchVarIndex - searchIndex), matchParams, varNamesRegex))
+      {
+        std::string param = matchParams.str(2);
+        parameterNames[param] = pcount++;
+        searchVarIndex = matchParams.position(matchParams.size());
+      }
+      else
+        break;
+    }
+
+  }
+
+  std::match_results<std::string::const_iterator> matchVars;
+  while (true)
+  {
+    if (std::regex_search(stanCode.substr(searchVarIndex), matchVars, varNamesRegex))
+    {
+      std::string param = matchVars.str(2);
+      parameterNames[param] = vcount++;
+      searchVarIndex = matchVars.position(matchVars.size());
+    }
+    else
+      break;
+  }
+}
+
 // parses stan code string
 void restan::parseStan(std::string stanCode)
 {
   // variable / parameter names
   std::map<std::string, unsigned int> parameterNames;
-  unsigned int parameterNameCount = 0;
   std::map<std::string, unsigned int> variableNames;
-  unsigned int variableNameCount = 0;
+  int pCount = 0;
+  int vCount = 0;
+
+  variableNames["target"] = vCount++;
+  fillNames(stanCode, parameterNames, pCount, variableNames, vCount);
 
   // fixed lookups
   std::map<std::string, fnExpr> distributionMap;
   std::map<std::string, fnExpr> functionMap;
 
-  // currently declaring variables or parameters?
-  bool declaringVariables = true;
-
-  variableNames["target"] = variableNameCount++;
 
   parser p(syntax);
   p["Code"] = [&](const SemanticValues& sv)
@@ -109,13 +151,11 @@ void restan::parseStan(std::string stanCode)
   std::cout<<"parsed syntax\n";
   p["OptionalParameters"] = [&](const SemanticValues& sv)
   {
-    declaringVariables = false;
     for (int i = 0; i < sv.size(); i ++)
       sv[i].get<Statement*>(); // trigger;
   };
   p["OptionalTransformedParameters"] = [&](const SemanticValues& sv)
   {
-    declaringVariables = true;
     Statement** sl = new Statement*[sv.size()+1];
     Statement** slo = sl;
     stArrayHeap.push_back(sl);
@@ -139,15 +179,11 @@ void restan::parseStan(std::string stanCode)
   {
     return sv[0].get<Expression*>();
   };
-  p["Declaration"] = [&](const SemanticValues& sv)
+  p["VariableDeclaration"] = [&](const SemanticValues& sv)
   {
     if (sv.choice() == 1)
     {
       // type f = blah
-      if (!declaringVariables)
-      {
-        throw ParseError("Attempted to assign to a parameter");
-      }
       Statement* declareAssign = new StatementAssign(sv[0].get<unsigned int>(), sv[2].get<Expression*>());
       stHeap.push_back(declareAssign);
       return declareAssign;
@@ -162,17 +198,8 @@ void restan::parseStan(std::string stanCode)
   {
     std::string varName = trim(sv[sv.size() - 1].get<std::string>());
     if (variableNames.count(varName) > 0 || parameterNames.count(varName) > 0)
-      throw ParseError(std::string("Attempted to redefine variable or parameter ") + varName);
-    if (declaringVariables)
-    {
-      // variable
-      return variableNames[trim(varName)] = variableNameCount++;
-    }
-    else
-    {
-      // parameter
-      return parameterNames[trim(varName)] = parameterNameCount++;
-    }
+      throw ParseError(std::string("Variable name not found by regex, but declared anyway: \"") + varName + "\"");
+    return variableNames[trim(varName)];
   };
   p["Identifier"] = [&](const SemanticValues& sv) -> std::string
   {
@@ -352,7 +379,7 @@ void restan::parseStan(std::string stanCode)
     std::string funcId = sv[0].get<std::string>();
 		if (functionMap.find(funcId) == functionMap.end())
     {
-  		throw ParseError(std::string("Did not find functionId at line"));
+  		//throw ParseError(std::string("Did not find functionId at line"));
 		}
 
 		fnExpr func = functionMap[funcId];
@@ -441,7 +468,7 @@ void restan::parseStan(std::string stanCode)
 
   std::cout<<"set up actions\n";
 
-  p.enable_packrat_parsing();
+  //p.enable_packrat_parsing();
   p.parse(stanCode.c_str());
 
   std::cout<<"parsed\n";
