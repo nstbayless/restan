@@ -173,6 +173,16 @@ TEST_CASE( "Statement testing" )
 	REQUIRE( compareEV(varEXPR.getValue(), expectedAssignedVariables) );
 
 }
+
+TEST_CASE ( "Expression Function testing " )
+{
+	
+}
+
+TEST_CASE ( "Statement Function testing" )
+{
+	
+}
 /*
 TESTS:
 Matrix/Vector operations

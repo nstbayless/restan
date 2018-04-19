@@ -10,6 +10,7 @@
 
 namespace restan
 {
+  typedef adept::aMatrix (*InterpFunc)(adept::aMatrix*, unsigned int); 
   // constant value
   class ExpressionConstant : public Expression
   {
@@ -67,6 +68,17 @@ namespace restan
     virtual ExpressionValue getValue() override;
   };
 
+  // function expression
+  class ExpressionFunction : public Expression
+  {
+  public:
+    ExpressionFunction(InterpFunc, Expression* expressions, unsigned int numExpressions);
+    virtual ExpressionValue getValue() override;
+  private:
+    InterpFunc sf;
+    Expression* expressions;
+    unsigned int numExpressions;
+  };
 
 }
 

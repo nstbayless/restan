@@ -4,6 +4,7 @@
 #include <adept_arrays.h>
 
 #include "statementTypes.h"
+#include "expressionTypes.h"
 #include "pi/pi.h"
 
 using namespace restan;
@@ -44,10 +45,12 @@ void restan::StatementAssign::execute()
 	}
 }
 //// StatementFunction ////
-restan::StatementFunction::StatementFunction(ExpressionValue (*sf)(ExpressionValue[], int))
-:	sf(sf)
+//ExpressionValue (*sf)(ExpressionValue[], int)
+restan::StatementFunction::StatementFunction(const restan::ExpressionFunction& funcEXPR)
+:	funcEXPR(funcEXPR)
 {}
+
 void restan::StatementFunction::execute()
 {
-
+	funcEXPR.getValue();
 }

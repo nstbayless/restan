@@ -5,7 +5,7 @@
 #include <adept_arrays.h>
 
 #include "statement.h"
-#include "expression.h"
+#include "expressionTypes.h"
 
 namespace restan
 {
@@ -45,10 +45,10 @@ namespace restan
   class StatementFunction : public Statement
   {
   public:
-    StatementFunction(ExpressionValue (*sf)(ExpressionValue[], int));
+    StatementFunction(const restan::ExpressionFunction& funcEXPR);
     virtual void execute() override;
   private:
-    ExpressionValue (*sf)(ExpressionValue[], int);
+    ExpressionFunction funcEXPR;
   };
 
 
