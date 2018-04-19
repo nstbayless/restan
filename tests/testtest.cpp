@@ -5,6 +5,8 @@
 #include "pi/pi.h"
 #include "pi/expressionTypes.h"
 #include "pi/statementTypes.h"
+#include "pi/distributions.h"
+
 using namespace restan;
 using namespace adept;
 
@@ -179,7 +181,7 @@ TEST_CASE ( "Expression Function and Statement Function testing " )
 	Vector parameters = {1,2,3,4,5,6};
 	setParams(parameters);
 
-	void* EXPRArray[4];
+	restan::Expression* EXPRArray[4];
 
 
 	ExpressionConstant cEXPR1(5.0);
@@ -192,11 +194,11 @@ TEST_CASE ( "Expression Function and Statement Function testing " )
 	EXPRArray[2] = &pEXPR1;
 	EXPRArray[3] = &aEXPR;
 
-/*	ExpressionFunction fEXPR(normal, EXPRArray,4);
+	ExpressionFunction fEXPR(restan::distributions::normal, EXPRArray, 4);
 
 	std::cout << fEXPR.getValue() << std::endl;
 
-	StatementFunc fSTMT(fEXPR);*/
+	StatementFunction fSTMT(fEXPR);
 }
 
 
