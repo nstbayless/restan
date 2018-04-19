@@ -109,7 +109,7 @@ ExpressionValue restan::ExpressionArithmetic::getValue()
 
 
 //// ExpressionFunction ////
-restan::ExpressionFunction::ExpressionFunction(InterpFunc sf, Expression* expressions, unsigned int numExpressions)
+restan::ExpressionFunction::ExpressionFunction(InterpFunc sf, Expression** expressions, unsigned int numExpressions)
 : sf(sf),
   expressions(expressions),
   numExpressions(numExpressions) 
@@ -119,7 +119,7 @@ ExpressionValue restan::ExpressionFunction::getValue()
 {
   ExpressionValue expressionVals[numExpressions];
   for (int i = 0; i < numExpressions; i++) {
-    expressionVals[i] = expressions[i].getValue();
+    expressionVals[i] = expressions[i]->getValue();
   }
   return sf(expressionVals, numExpressions);
 }

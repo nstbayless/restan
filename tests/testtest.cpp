@@ -176,12 +176,29 @@ TEST_CASE( "Statement testing" )
 
 TEST_CASE ( "Expression Function testing " )
 {
-	
+	Vector parameters = {1,2,3,4,5,6};
+	setParams(parameters);
+
+	Expression* EXPRArray[4];
+
+
+	ExpressionConstant cEXPR1(5.0);
+	ExpressionConstant cEXPR2(10.0);
+	ExpressionParameter pEXPR1(1,3);
+	ExpressionArithmetic aEXPR(PLUS, &cEXPR1, &cEXPR2);
+
+	EXPRArray[0] = &cEXPR1;
+	EXPRArray[1] = &cEXPR2;
+	EXPRArray[2] = &pEXPR1;
+	EXPRArray[3] = &aEXPR;
+
+
+
 }
 
 TEST_CASE ( "Statement Function testing" )
 {
-	
+
 }
 /*
 TESTS:

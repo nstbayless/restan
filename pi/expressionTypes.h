@@ -72,11 +72,11 @@ namespace restan
   class ExpressionFunction : public Expression
   {
   public:
-    ExpressionFunction(InterpFunc, Expression* expressions, unsigned int numExpressions);
+    ExpressionFunction(InterpFunc, Expression** expressions, unsigned int numExpressions);
     virtual ExpressionValue getValue() override;
   private:
     InterpFunc sf;
-    Expression* expressions;
+    Expression** expressions;
     unsigned int numExpressions;
   };
 
