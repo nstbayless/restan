@@ -12,7 +12,23 @@ const int N_SAMPLES = 8000;
 
 int main(int argc, char** args)
 {
-  restan::parseStan("model { \nincrement_log_prob(4 * 4 + 3 * alpha * alpha  + 4) ;\n}");
+  try
+  {
+    restan::parseStan(R"(
+    __BEGIN_STAN_CODE__
+    model
+    {
+      target += 3;
+    }
+    __END_STAN_CODE__
+  )");
+  }
+  catch (restan::ParseError& e)
+  {
+    std::cerr << "PARSE ERROR" << std::endl;
+    std::cerr << e.what() << std::endl;
+    return 0;
+  }
   adept::Vector q0 = {10};
   adept::Vector samples[N_SAMPLES];
   restan::HMCMC(restan::getLoss, q0, 0.1, 25, N_SAMPLES, samples);

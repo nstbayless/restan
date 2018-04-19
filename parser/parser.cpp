@@ -17,8 +17,17 @@ using namespace restan;
 class Statement;
 class ExpressionValue;
 
+std::string trim(std::string s)
+{
+  while (s.length() > 0 && iswspace(s[0]))
+    s = s.substr(1);
+  while (s.length() > 0 && iswspace(s[s.length() - 1]))
+    s = s.substr(0, s.length() - 1);
+  return s;
+}
+
 auto syntax = R"(
-        Code <- OptionalData OptionalParameters Model
+        Code <- '__BEGIN_STAN_CODE__' OptionalData OptionalParameters Model '__END_STAN_CODE__'
         OptionalData <-
         OptionalParameters <- 'parameters' '{' ( Declaration ';' )* '}' /
         OptionalTransformedParameters <- 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
@@ -35,7 +44,9 @@ auto syntax = R"(
 
         # Statements
         Statements <- Statement ';' Statements /
-        Statement <- VariableExpression '~' Distribution '(' ArgList ')' / Variable AssignOp Expression / Variable RelOp Expression / FunctionExpression / '{' Statements '}' #V
+        Statement <- VariableExpression '~' Distribution '(' ArgList ')' /
+                    Variable AssignOp Expression / Variable RelOp Expression /
+                    FunctionExpression / '{' Statements '}'
         AssignOp <- '=' / '<-'
         RelOp <- '+=' / '-=' / '*=' / '/='
 
@@ -44,7 +55,8 @@ auto syntax = R"(
         ExpressionTerm <- ExpressionFactor (FactorOp ExpressionFactor)*
         TermOp <- '+' / '-'
         FactorOp <- '*' / '/'
-        ExpressionFactor <- FunctionExpression / '(' Expression ')' / Constant / VariableExpression
+        ExpressionFactor <- FunctionExpression / '(' Expression ')' /
+                            Constant / VariableExpression
         FunctionExpression <- Identifier '(' ArgList ')'
         ArgList <- Expression ',' ArgList / Expression '|' ArgList / Expression /
         Constant <- < [0-9]+ >
@@ -148,19 +160,23 @@ void restan::parseStan(std::string stanCode)
   };
   p["DeclarationLHS"] = [&](const SemanticValues& sv)
   {
-    std::string varName = sv[sv.size() - 1].get<std::string>();
+    std::string varName = trim(sv[sv.size() - 1].get<std::string>());
     if (variableNames.count(varName) > 0 || parameterNames.count(varName) > 0)
       throw ParseError(std::string("Attempted to redefine variable or parameter ") + varName);
     if (declaringVariables)
     {
       // variable
-      return variableNames[varName] = variableNameCount++;
+      return variableNames[trim(varName)] = variableNameCount++;
     }
     else
     {
       // parameter
-      return parameterNames[varName] = parameterNameCount++;
+      return parameterNames[trim(varName)] = parameterNameCount++;
     }
+  };
+  p["Identifier"] = [&](const SemanticValues& sv) -> std::string
+  {
+    return trim(sv.token());
   };
   p["Statements"] = [&](const SemanticValues& sv) -> Statement*
   {
@@ -391,18 +407,20 @@ void restan::parseStan(std::string stanCode)
 
   p["Parameter"] = [&](const SemanticValues& sv)
   {
-    if (parameterNames.count(sv.token()) == 0)
-      throw ParseError(std::string("Unknown parameter or variable \"") + sv.token() + "\"");
+    std::string varName = trim(sv.token());
+    if (!parameterNames.count(varName))
+      throw ParseError(std::string("Unknown parameter \"") + varName + "\"");
     else
-      return parameterNames[sv.token()];
+      return parameterNames[varName];
   };
 
   p["Variable"] = [&](const SemanticValues& sv)
   {
-    if (variableNames.count(sv.token()) == 0)
-      throw ParseError(std::string("Unknown parameter or variable \"") + sv.token() + "\"");
+    std::string varName = trim(sv.token());
+    if (!variableNames.count(varName))
+      throw ParseError(std::string("Unknown variable \"") + varName + "\"");
     else
-      return variableNames[sv.token()];
+      return variableNames[varName];
   };
 
   p["VariableExpression"] = [&](const SemanticValues& sv)
