@@ -174,12 +174,12 @@ TEST_CASE( "Statement testing" )
 
 }
 
-TEST_CASE ( "Expression Function testing " )
+TEST_CASE ( "Expression Function and Statement Function testing " )
 {
 	Vector parameters = {1,2,3,4,5,6};
 	setParams(parameters);
 
-	Expression* EXPRArray[4];
+	void* EXPRArray[4];
 
 
 	ExpressionConstant cEXPR1(5.0);
@@ -192,14 +192,15 @@ TEST_CASE ( "Expression Function testing " )
 	EXPRArray[2] = &pEXPR1;
 	EXPRArray[3] = &aEXPR;
 
+/*	ExpressionFunction fEXPR(normal, EXPRArray,4);
 
+	std::cout << fEXPR.getValue() << std::endl;
 
+	StatementFunc fSTMT(fEXPR);*/
 }
 
-TEST_CASE ( "Statement Function testing" )
-{
 
-}
+
 /*
 TESTS:
 Matrix/Vector operations
