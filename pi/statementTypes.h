@@ -9,22 +9,15 @@
 
 namespace restan
 {
-  enum AssignOperator
-  {
-    EQUALS,
-    PLUSEQUALS,
-    MINUSEQUALS,
-    TIMESEQUALS
-  };
   // a = N(0,1); V ~ B x3
   class StatementBody : public Statement
   {
   public:
-    StatementBody(Statement* statements, int length);
+    StatementBody(Statement** statements, int length);
     virtual void execute() override;
   private:
     int length;
-    Statement* statements;
+    Statement** statements;
   };
 
 
@@ -32,26 +25,26 @@ namespace restan
   class StatementAssign : public Statement
   {
   public:
-    StatementAssign(restan::AssignOperator op, unsigned int startIndex, unsigned int endIndex, Expression* expression);
+    StatementAssign( unsigned int index, Expression* expression);
+    StatementAssign( unsigned int startIndex, unsigned int endIndex, Expression* expression);
     virtual void execute() override;
   private:
-    AssignOperator op;
     unsigned int startIndex;
     unsigned int endIndex;
     Expression* expression;
   };
-  
-  // a ~ N(0,1) 
+
+  // a ~ N(0,1)
   class StatementFunction : public Statement
   {
   public:
-    StatementFunction(const restan::ExpressionFunction& funcEXPR);
+    StatementFunction(restan::ExpressionFunction* expressionFunction);
     virtual void execute() override;
   private:
-    ExpressionFunction funcEXPR;
+    ExpressionFunction* funcEXPR;
   };
 
 
 }
 
-#endif 
+#endif

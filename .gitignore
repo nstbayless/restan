@@ -8,4 +8,5 @@ CMakeFiles/
 restan
 *.a
 *.so
+stan-tests
 restan-tests

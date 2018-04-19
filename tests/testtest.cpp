@@ -27,7 +27,7 @@ bool compareEV(ExpressionValue A, ExpressionValue B)
 		return false;
 	}
 
-	for (int r = 0; r < num_A_rows; r++) 
+	for (int r = 0; r < num_A_rows; r++)
 		for (int c = 0; c < num_A_cols; c++) {
 			if (A(r, c).value() != B(r, c).value()) {
 				printf("\ntesttestcpp/compareEV values of A(%d, %d): %f and B(%d, %d): %f differ!\n", r, c, A(r,c).value(), r, c, B(r,c).value());
@@ -49,7 +49,7 @@ Vector matrixToVector(ExpressionValue EV)
 	return flattenedVector;
 }*/
 
-TEST_CASE( "Testing constant expressions") 
+TEST_CASE( "Testing constant expressions")
 {
 	adept::aMatrix A(1,1);
 	A(0, 0) = 5.0;
@@ -62,7 +62,7 @@ TEST_CASE( "Testing double ExpressionConstant constructor")
 {
 	double constantDouble = 5.0;
 	restan::ExpressionConstant myConstant(constantDouble);
-	REQUIRE( myConstant.getValue()(0,0) == constantDouble); 
+	REQUIRE( myConstant.getValue()(0,0) == constantDouble);
 }
 
 TEST_CASE( "Testing parameter expressions" )
@@ -85,7 +85,7 @@ TEST_CASE( "Testing parameter expressions" )
 	REQUIRE( compareEV(mv, testEV) );
 }
 
-TEST_CASE( "Testing arithmetic expressions" ) 
+TEST_CASE( "Testing arithmetic expressions" )
 {
 	ExpressionValue tMatrix(4,4);
 	tMatrix << 	1,2,3,4,
@@ -129,7 +129,7 @@ TEST_CASE( "Testing arithmetic expressions" )
 	REQUIRE( compareEV(subVal, trueSubResult));
 }
 
-TEST_CASE( " ExpressionVariable testing" ) 
+TEST_CASE( " ExpressionVariable testing" )
 {
 	Vector variables = {10, 11, 12, 13};
 	setVariables(variables);
@@ -158,10 +158,10 @@ TEST_CASE( "Statement testing" )
 
 	ExpressionArithmetic arithExpr(TIMES, &constExpr, &paramsExpr);
 
-	StatementAssign sa(restan::EQUALS, 1, 3, &arithExpr);
+	StatementAssign sa(1, 3, &arithExpr);
 	sa.execute();
 
-/*	
+/*
 	//Testing updateVariables
 	ExpressionValue hardCodedMatrix(1,2); hardCodedMatrix << 100, 101;
 	std::cout << hardCodedMatrix << std::endl;
@@ -201,7 +201,7 @@ TEST_CASE ( "Expression Function and Statement Function testing " )
 
 TEST_CASE ("Scalar Normal Distribution test")
 {
-	Vector parameters = {1,2,3,4,5,6}; 
+	Vector parameters = {1,2,3,4,5,6};
 	setParams(parameters);
 
 	ExpressionConstant xEXPR(10.0);
@@ -210,9 +210,9 @@ TEST_CASE ("Scalar Normal Distribution test")
 
 	restan::Expression* EXPRArray[3];
 
-	EXPRArray[0] = &xEXPR; 
-	EXPRArray[1] = &muEXPR; 
-	EXPRArray[2] = &sigmaEXPR; 
+	EXPRArray[0] = &xEXPR;
+	EXPRArray[1] = &muEXPR;
+	EXPRArray[2] = &sigmaEXPR;
 
 	ExpressionFunction fEXPR(restan::distributions::normal, EXPRArray, 3);
 
@@ -229,9 +229,9 @@ TEST_CASE ("Vector Normal Distribution test")
 
 	restan::Expression* EXPRArray[3];
 
-	EXPRArray[0] = &xEXPR; 
-	EXPRArray[1] = &muEXPR; 
-	EXPRArray[2] = &sigmaEXPR; 
+	EXPRArray[0] = &xEXPR;
+	EXPRArray[1] = &muEXPR;
+	EXPRArray[2] = &sigmaEXPR;
 
 	ExpressionFunction fEXPR(restan::distributions::normal, EXPRArray, 3);
 

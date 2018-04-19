@@ -11,16 +11,16 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
 {
   stack.new_recording();
 
-  adept::Vector v(1,1);
-  v(0,0) = 0;
-  setVariables(v)
+  adept::Vector v(1);
+  v = 0;
+  setVariables(v);
 
   // set independent variable
-  vars(0,0).set_gradient(1.0);
+  vars(0).set_gradient(1.0);
   stack.compute_adjoint();
 
   // return value
-  return GradValue(loss.value(), params.get_gradient());
+  return GradValue(vars(0).value(), params.get_gradient());
 }
 
 ExpressionValue restan::Pi::getParams(unsigned int startIndex, unsigned int endIndex)
@@ -36,7 +36,7 @@ GradValue restan::getLoss(const adept::Vector& q)
   return pi.getLoss(q);
 }
 
-void restan::Pi::setStatement(Statement *s)
+void restan::Pi::setLossStatement(Statement *s)
 {
   statement = s;
 }

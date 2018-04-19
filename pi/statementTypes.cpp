@@ -11,7 +11,7 @@ using namespace restan;
 using namespace adept;
 
 //// StatementBody ////
-restan::StatementBody::StatementBody(Statement* statements, int length)
+restan::StatementBody::StatementBody(Statement** statements, int length)
 :length(length),
 statements(statements)
 {}
@@ -19,16 +19,21 @@ statements(statements)
 void restan::StatementBody::execute()
 {
 	for (int i = 0; i < length; i++) {
-		statements[i].execute();
+		statements[i]->execute();
 	}
 }
 //// StatementAssign ////
-restan::StatementAssign::StatementAssign(restan::AssignOperator op, unsigned int startIndex, unsigned int endIndex, Expression* expression)
-:	op(op),
-	startIndex(startIndex),
+restan::StatementAssign::StatementAssign(unsigned int startIndex, unsigned int endIndex, Expression* expression)
+:	startIndex(startIndex),
 	endIndex(endIndex),
 	expression(expression)
-{}	
+{}
+
+restan::StatementAssign::StatementAssign(unsigned int index, Expression* expression)
+:	startIndex(index),
+	endIndex(index + 1),
+	expression(expression)
+{}
 
 void restan::StatementAssign::execute()
 {
@@ -36,21 +41,15 @@ void restan::StatementAssign::execute()
 	//TODO:: 1xn or nx1?
 	ExpressionValue rhsVal = expression->getValue();
 	std::cout << rhsVal << std::endl;
-	switch(op) {
-		case EQUALS:
-			updateVariables(rhsVal, startIndex, endIndex);
-			break;
-		default:
-			std::cout << "Assignment Operator invalid!!" << std::endl;
-	}
+	updateVariables(rhsVal, startIndex, endIndex);
 }
 //// StatementFunction ////
 //ExpressionValue (*sf)(ExpressionValue[], int)
-restan::StatementFunction::StatementFunction(const restan::ExpressionFunction& funcEXPR)
-:	funcEXPR(funcEXPR)
+restan::StatementFunction::StatementFunction(restan::ExpressionFunction* expressionFunction)
+:	funcEXPR(expressionFunction)
 {}
 
 void restan::StatementFunction::execute()
 {
-	funcEXPR.getValue();
+	funcEXPR->getValue();
 }

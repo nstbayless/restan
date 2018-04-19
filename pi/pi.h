@@ -20,8 +20,8 @@ namespace restan
     // loss value and gradient of given state
     GradValue getLoss(const adept::Vector& parameters);
     ExpressionValue getParams(unsigned int startIndex, unsigned int endIndex);
-    void setStatement(Statement* s);
-    void setVariables(const adept::Vector& variables);
+    void setLossStatement(Statement* s);
+    void setVariables(const adept::Vector& variableso);
     void updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex);
     ExpressionValue getVariables(unsigned int startIndex, unsigned int endIndex);
 
