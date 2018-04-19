@@ -6,3 +6,5 @@ CMakeFiles/
 
 # binary
 restan
+*.a
+*.so
