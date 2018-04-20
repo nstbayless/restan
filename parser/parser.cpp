@@ -94,7 +94,8 @@ void fillNames(std::string& stanCode, std::map<std::string, unsigned int>& param
 
     while (true)
     {
-      if (std::regex_search(stanCode.substr(searchIndex, searchVarIndex - searchIndex), matchParams, varNamesRegex))
+	  std::string strFind = stanCode.substr(searchIndex, searchVarIndex - searchIndex);
+      if (std::regex_search(strFind, matchParams, varNamesRegex))
       {
         std::string param = matchParams.str(2);
         parameterNames[param] = pcount++;
@@ -109,7 +110,8 @@ void fillNames(std::string& stanCode, std::map<std::string, unsigned int>& param
   std::match_results<std::string::const_iterator> matchVars;
   while (true)
   {
-    if (std::regex_search(stanCode.substr(searchVarIndex), matchVars, varNamesRegex))
+	std::string strFind = stanCode.substr(searchVarIndex);
+    if (std::regex_search(strFind, matchVars, varNamesRegex))
     {
       std::string param = matchVars.str(2);
       parameterNames[param] = vcount++;
