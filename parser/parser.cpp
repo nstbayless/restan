@@ -33,11 +33,11 @@ auto syntax = R"(
         OptionalParameters <- 'parameters' '{' ( ParameterDeclaration ';' )* '}' /
         OptionalTransformedParameters <- 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
         Model <- 'model' Statement
-        DeclarationOrStatement <- VariableDeclarationDeclaration / Statement
+        DeclarationOrStatement <- VariableDeclaration / Statement
 
         # Declarations
         VariableDeclaration <- DeclarationLHS / DeclarationLHS AssignOp Expression
-        ParameterDeclaration <- Type Identifier ### / Type <' BoundsList Identifier
+        ParameterDeclaration <- Type Identifier ### / Type '<' BoundsList Identifier
         DeclarationLHS <- Type Identifier ### / Type '<' BoundsList Identifier
         Type <- 'int' / 'real' / 'vector' / 'matrix'
         BoundsList <- Bound ',' BoundsList / Bound '>'
@@ -137,7 +137,6 @@ void restan::parseStan(std::string stanCode)
   // fixed lookups
   std::map<std::string, fnExpr> distributionMap;
   std::map<std::string, fnExpr> functionMap;
-
 
   parser p(syntax);
   p["Code"] = [&](const SemanticValues& sv)
