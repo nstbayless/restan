@@ -96,3 +96,16 @@ TEST_CASE( " ExpressionVariable testing" )
 }
 
 
+TEST_CASE ("StartIndexInvalid error") 
+{
+	Vector variables = {10, 11, 12, 13};
+	setVariables(variables);
+
+	ExpressionVariable singleVariable(-1);
+
+	CHECK_THROWS(singleVariable.getValue());
+
+	ExpressionParameter singleParam(-1);
+
+	CHECK_THROWS(singleParam.getValue());
+}

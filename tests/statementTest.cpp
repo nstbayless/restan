@@ -1,7 +1,7 @@
 #include "tests/test.h"
 
 
-TEST_CASE( "Statement testing" )
+TEST_CASE( "Statement testing and StartIndexInvalid test" )
 {
 	Vector variables = {10, 11, 12, 13};
 	setVariables(variables);
@@ -22,6 +22,11 @@ TEST_CASE( "Statement testing" )
 
 	ExpressionValue expectedAssignedVariables(1,4); expectedAssignedVariables << 10, 4, 6, 13;
 	REQUIRE( compareEV(varEXPR.getValue(), expectedAssignedVariables) );
+
+	//Test if startIndex == -1
+	StatementAssign saInvalid(restan::EQUALS, -1, 3, &arithExpr);
+	CHECK_THROWS(saInvalid.execute());
+
 
 }
 
@@ -47,4 +52,5 @@ TEST_CASE ( "Expression Function and Statement Function testing " )
 
 //	std::cout << fEXPR.getValue() << std::endl;
 }
+
 
