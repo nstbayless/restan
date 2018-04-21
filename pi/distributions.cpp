@@ -1,5 +1,6 @@
 #include "distributions.h"
 #include "expression.h"
+#include <math.h>
 
 using namespace restan;
 
@@ -19,8 +20,19 @@ ExpressionValue restan::distributions::uniform(ExpressionValue* exps, unsigned i
 ExpressionValue restan::distributions::pareto(ExpressionValue* exps, unsigned int) // x, xm, alpha
 {
     // TODO
+
 }
 ExpressionValue restan::distributions::Exponential(ExpressionValue* exps, unsigned int) // x, lambda
 {
     // TODO
+    unsigned int n = exps[0].size();
+
+    ExpressionValue result(1, n);
+    for (int i = 0; i < n; i++) {
+    	if (exps[0](0,i) < 0)
+    		result(0, i) = 0;
+    	else 
+    		result(0,i) = exps[1](0,0) * exp(-exps[1](0,0)*exps[0](0,i));
+    }
+    return result;
 }
