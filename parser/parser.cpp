@@ -33,11 +33,11 @@ auto syntax = R"(
         OptionalParameters <- 'parameters' '{' ( ParameterDeclaration ';' )* '}' /
         OptionalTransformedParameters <- 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
         Model <- 'model' Statement
-        DeclarationOrStatement <- VariableDeclarationDeclaration / Statement
+        DeclarationOrStatement <- VariableDeclaration / Statement
 
         # Declarations
         VariableDeclaration <- DeclarationLHS / DeclarationLHS AssignOp Expression
-        ParameterDeclaration <- Type Identifier ### / Type <' BoundsList Identifier
+        ParameterDeclaration <- Type Identifier ### / Type '<' BoundsList Identifier
         DeclarationLHS <- Type Identifier ### / Type '<' BoundsList Identifier
         Type <- 'int' / 'real' / 'vector' / 'matrix'
         BoundsList <- Bound ',' BoundsList / Bound '>'
@@ -94,7 +94,8 @@ void fillNames(std::string& stanCode, std::map<std::string, unsigned int>& param
 
     while (true)
     {
-      if (std::regex_search(stanCode.substr(searchIndex, searchVarIndex - searchIndex), matchParams, varNamesRegex))
+	  std::string strFind = stanCode.substr(searchIndex, searchVarIndex - searchIndex);
+      if (std::regex_search(strFind, matchParams, varNamesRegex))
       {
         std::string param = matchParams.str(2);
         parameterNames[param] = pcount++;
@@ -109,7 +110,8 @@ void fillNames(std::string& stanCode, std::map<std::string, unsigned int>& param
   std::match_results<std::string::const_iterator> matchVars;
   while (true)
   {
-    if (std::regex_search(stanCode.substr(searchVarIndex), matchVars, varNamesRegex))
+	std::string strFind = stanCode.substr(searchVarIndex);
+    if (std::regex_search(strFind, matchVars, varNamesRegex))
     {
       std::string param = matchVars.str(2);
       parameterNames[param] = vcount++;
@@ -135,7 +137,6 @@ void restan::parseStan(std::string stanCode)
   // fixed lookups
   std::map<std::string, fnExpr> distributionMap;
   std::map<std::string, fnExpr> functionMap;
-
 
   parser p(syntax);
   p["Code"] = [&](const SemanticValues& sv)
