@@ -197,8 +197,6 @@ void restan::parseStan(std::string stanCode)
   p["DeclarationLHS"] = [&](const SemanticValues& sv)
   {
     std::string varName = trim(sv[sv.size() - 1].get<std::string>());
-    if (variableNames.count(varName) > 0 || parameterNames.count(varName) > 0)
-      throw ParseError(std::string("Variable name not found by regex, but declared anyway: \"") + varName + "\"");
     return variableNames[trim(varName)];
   };
   p["Identifier"] = [&](const SemanticValues& sv) -> std::string
