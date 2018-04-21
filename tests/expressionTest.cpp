@@ -23,7 +23,7 @@ TEST_CASE( "Testing parameter expressions" )
 	//Create testVector
 	Vector testV = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
 
-	setParams(testV);
+	setParams(testV, 7);
 
 
 	ExpressionParameter myParam(0);
@@ -61,7 +61,7 @@ TEST_CASE( "Testing arithmetic expressions" )
 
 	//Set Paramsr
 	adept::Vector testParams = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
-	setParams(testParams);
+	setParams(testParams, 7);
 
 	ExpressionParameter vecParams(0,3); //1 2 3
 	ExpressionParameter vecParams2(3, 6); //4 5 6

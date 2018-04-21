@@ -27,8 +27,8 @@ namespace restan
     ExpressionValue getVariables(unsigned int startIndex, unsigned int endIndex);
 
     //TODO: Used for testing purposes
-    void setParams(const adept::Vector& parameters);
-
+    void setParams(const adept::Vector& parameters, unsigned int discreteIndStart);
+    unsigned int discreteIndexStart;
   private:
     //// these variables are fixed from evaluation to evaluation (getLoss) ////
     Expression* lossExpression;
@@ -39,6 +39,7 @@ namespace restan
     adept::Stack stack;
     // parameter vector
     adept::aVector params;
+    
     // variable vector
     adept::aVector vars;
 
@@ -50,7 +51,7 @@ namespace restan
 
   GradValue getLoss(const adept::Vector& q);
   //TEST HELPERS
-  void setParams(const adept::Vector& parameters);
+  void setParams(const adept::Vector& parameters, unsigned int discreteIndexStart);
   void setVariables(const adept::Vector& variables);
   void updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex);
 }

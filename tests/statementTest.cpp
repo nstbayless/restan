@@ -6,7 +6,7 @@ TEST_CASE( "Statement testing" )
 	Vector variables = {10, 11, 12, 13};
 	setVariables(variables);
 	Vector parameters = {1,2,3,4,5,6};
-	setParams(parameters);
+	setParams(parameters, 7);
 
 	ExpressionVariable varEXPR(0,4);
 	//std::cout << varEXPR.getValue() << std::endl;
@@ -28,7 +28,7 @@ TEST_CASE( "Statement testing" )
 TEST_CASE ( "Expression Function and Statement Function testing " )
 {
 	Vector parameters = {1,2,3,4,5,6};
-	setParams(parameters);
+	setParams(parameters, 7);
 
 	restan::Expression* EXPRArray[4];
 
