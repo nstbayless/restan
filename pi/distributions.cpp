@@ -19,7 +19,7 @@ ExpressionValue restan::distributions::uniform(ExpressionValue* exps, unsigned i
 }
 ExpressionValue restan::distributions::pareto(ExpressionValue* exps, unsigned int) // x, xm, alpha
 {
-    // TODO
+    // TODOwun
 
 }
 ExpressionValue restan::distributions::Exponential(ExpressionValue* exps, unsigned int) // x, lambda
