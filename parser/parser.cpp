@@ -453,6 +453,7 @@ void restan::parseStan(std::string stanCode)
 
   p["VariableExpression"] = [&](const SemanticValues& sv)
   {
+
     Expression* expr;
     switch (sv.choice())
     {
@@ -470,6 +471,7 @@ void restan::parseStan(std::string stanCode)
   std::cout<<"set up actions\n";
 
   //p.enable_packrat_parsing();
+  p.enable_trace(restan::tracer);
   p.parse(stanCode.c_str());
 
   std::cout<<"parsed\n";
@@ -487,3 +489,11 @@ void restan::parseStanCleanup()
   for (Statement** sta : stArrayHeap)
     delete [] sta;
 }
+
+void restan::tracer (const char* name, const char* s, size_t n, const SemanticValues& sv, const Context& c, const any& dt) {
+	
+	std::cerr << "applied " << name << " production:" << std::endl;
+	//std::cerr << "Parse stream:" << s << std::endl;
+	//std::cerr << "Context:" << c.value_stack_size << " " << c.nest_level << std::endl;
+}
+
