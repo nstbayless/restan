@@ -14,6 +14,13 @@
 
 namespace restan
 {
+
+  class StartIndexInvalid : public std::exception
+  {
+  public:
+    StartIndexInvalid() {}
+  };
+  
   class Pi
   {
   public:  

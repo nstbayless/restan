@@ -35,6 +35,9 @@ void restan::StatementAssign::execute()
 	//ASSUME::variables is a vector so we cast expression->getValue to a vector
 	//TODO:: 1xn or nx1?
 	ExpressionValue rhsVal = expression->getValue();
+	if (startIndex == -1) {
+		throw StartIndexInvalid();
+	}
 	std::cout << rhsVal << std::endl;
 	switch(op) {
 		case EQUALS:

@@ -7,6 +7,8 @@ using namespace adept;
 
 Pi restan::pi;
 
+
+
 void restan::Pi::executeStatement() 
 {
   statement->execute();

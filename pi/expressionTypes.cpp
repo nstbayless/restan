@@ -31,6 +31,8 @@ restan::ExpressionParameter::ExpressionParameter(unsigned int parameterIndexStar
 ExpressionValue restan::ExpressionParameter::getValue()
 {
   // Returns a vector of all parameters
+  if (parameterIndexStart == -1)
+    throw StartIndexInvalid();
   return pi.getParams(parameterIndexStart, parameterIndexEnd);
 }
 
@@ -47,6 +49,8 @@ restan::ExpressionVariable::ExpressionVariable(unsigned int variableIndexStart, 
 ExpressionValue restan::ExpressionVariable::getValue()
 {
   // Returns a vector of all parameters
+  if (variableIndexStart == -1)
+    throw StartIndexInvalid();
   return pi.getVariables(variableIndexStart, variableIndexEnd);
 }
 
