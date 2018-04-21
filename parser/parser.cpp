@@ -351,8 +351,7 @@ void restan::parseStan(std::string stanCode)
   {
     if (distributionMap[sv.token()])
       return distributionMap[sv.token()];
-    else
-      throw ParseError(std::string("Unknown distribution \"") + sv.token() + "\"");
+    return static_cast<fnExpr>(nullptr);
   };
 
   p["Expression"] = [&](const SemanticValues& sv)
@@ -431,20 +430,20 @@ void restan::parseStan(std::string stanCode)
     return expr;
   };
 
-  p["Parameter"] = [&](const SemanticValues& sv)
+  p["Parameter"] = [&](const SemanticValues& sv) -> unsigned int
   {
     std::string varName = trim(sv.token());
     if (!parameterNames.count(varName))
-      throw ParseError(std::string("Unknown parameter \"") + varName + "\"");
+      return -1;
     else
       return parameterNames[varName];
   };
 
-  p["Variable"] = [&](const SemanticValues& sv)
+  p["Variable"] = [&](const SemanticValues& sv) -> unsigned int
   {
     std::string varName = trim(sv.token());
     if (!variableNames.count(varName))
-      throw ParseError(std::string("Unknown variable \"") + varName + "\"");
+      return -1;
     else
       return variableNames[varName];
   };
