@@ -504,8 +504,10 @@ void restan::parseStanCleanup()
 
 void restan::tracer (const char* name, const char* s, size_t n, const SemanticValues& sv, const Context& c, const any& dt) {
 	
-	std::cerr << "applied " << name << " production:" << std::endl;
-	//std::cerr << "Parse stream:" << s << std::endl;
-	//std::cerr << "Context:" << c.value_stack_size << " " << c.nest_level << std::endl;
+	if (std::string(name).find("::") != std::string::npos ) {
+		std::cerr << "applied " << name << " production:" << std::endl;
+		//std::cerr << "Parse stream:" << s << std::endl;
+		//std::cerr << "Context:" << c.value_stack_size << " " << c.nest_level << std::endl;
+	}
 }
 

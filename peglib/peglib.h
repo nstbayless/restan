@@ -1438,8 +1438,8 @@ inline size_t Holder::parse(const char* s, size_t n, SemanticValues& sv, Context
     if (!ope_) {
         throw std::logic_error("Uninitialized definition ope was used...");
     }
-
-    c.trace(outer_->name.c_str(), s, n, sv, dt);
+    std::string ext = "EXT::";
+    c.trace(ext.append(outer_->name).c_str(), s, n, sv, dt);
     c.nest_level++;
     auto se = make_scope_exit([&]() { c.nest_level--; });
 
