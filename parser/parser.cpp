@@ -120,6 +120,18 @@ void fillNames(std::string& stanCode, std::map<std::string, unsigned int>& param
     else
       break;
   }
+
+	std::cout << "Variable Names:" << std::endl;
+	for(auto kv_it=variableNames.begin(); kv_it!=variableNames.end(); kv_it++) {
+		std::cout << kv_it->first << " " << kv_it->second << std::endl;
+	}
+	std::cout << std::endl;
+	std::cout << "Parameter Names:" << std::endl;
+	for(auto kv_it=parameterNames.begin(); kv_it!=parameterNames.end(); kv_it++) {
+		std::cout << kv_it->first << " " << kv_it->second << std::endl;
+	}
+	std::cout << std::endl;
+
 }
 
 // parses stan code string

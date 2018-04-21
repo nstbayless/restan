@@ -12,6 +12,18 @@ const int N_SAMPLES = 8000;
 
 int main(int argc, char** args)
 {
+  /* //Different test
+    __BEGIN_STAN_CODE__
+    model
+    {
+      target += 3;
+	  cat ~ normal(0,0);
+	  param ~ beta(1);
+	  real dog;
+	  dog ~ poisson(3);
+    }
+    __END_STAN_CODE__ */
+
   try
   {
     restan::parseStan(R"(
