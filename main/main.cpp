@@ -16,9 +16,13 @@ int main(int argc, char** args)
   {
     restan::parseStan(R"(
       __BEGIN_STAN_CODE__
+      parameters
+      {
+        real lambda;
+      }
       model
       {
-        target += (3);
+        lambda ~ normal(0, 1);
       }
       __END_STAN_CODE__
     )");
@@ -33,8 +37,8 @@ int main(int argc, char** args)
   adept::Vector samples[N_SAMPLES];
   restan::pi.setVariables(q0);
   restan::HMCMC(restan::getLoss, q0, 0.1, 25, N_SAMPLES, samples);
-  ////for (int i = 0; i < 40; i++)
-///std::cout<<samples[i]<<std::endl;
+  for (int i = 0; i < 40; i++)
+    std::cout<<samples[i]<<std::endl;
   restan::parseStanCleanup();
   return 0;
 }

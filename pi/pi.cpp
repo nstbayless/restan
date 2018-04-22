@@ -28,7 +28,7 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   vars(0).set_gradient(1.0);
   stack.compute_adjoint();
 
-  std::cout << "Get Loss: " << vars(0).value() << " gradient: " << params.get_gradient() << std::endl;
+  //std::cout << "Get Loss: " << vars(0).value() << " gradient: " << params.get_gradient() << std::endl;
   // return value
   return GradValue(vars(0).value(), params.get_gradient());
 }

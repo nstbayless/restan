@@ -3,6 +3,7 @@
 #include "parser.h"
 #include "pi/expressionTypes.h"
 #include "pi/statementTypes.h"
+#include "pi/distributions.h"
 
 #include <adept.h>
 #include <adept_arrays.h>
@@ -42,8 +43,8 @@ auto syntax = R"(
 
         # Declarations
         VariableDeclaration <- DeclarationLHS / DeclarationLHS AssignOp Expression
-        ParameterDeclaration <- Type Identifier ### / Type '<' BoundsList Identifier
-        DeclarationLHS <- Type Identifier ### / Type '<' BoundsList Identifier
+        ParameterDeclaration <- Type Parameter ### / Type '<' BoundsList Identifier
+        DeclarationLHS <- Type Variable ### / Type '<' BoundsList Identifier
         Type <- 'int' / 'real' / 'vector' / 'matrix'
         BoundsList <- Bound ',' BoundsList / Bound '>'
         Bound <- BoundType '=' Constant
@@ -51,7 +52,7 @@ auto syntax = R"(
 
         # Statements
         Statements <- Statement ';' Statements /
-        Statement <- VariableExpression '~' Distribution '(' ArgList ')' /
+        Statement <- VariableExpression '~' Distribution '(' Expression (',' Expression)* ')' /
                     Variable AssignOp Expression / Variable RelOp Expression /
                     FunctionExpression / '{' Statements '}'
         AssignOp <- '=' / '<-'
@@ -63,13 +64,12 @@ auto syntax = R"(
         TermOp <- '+' / '-'
         FactorOp <- '*' / '/'
         ExpressionFactor <- FunctionExpression / '(' Expression ')' / Constant / VariableExpression
-        FunctionExpression <- Identifier '(' ArgList ')'
-        ArgList <- Expression ',' ArgList / Expression '|' ArgList / Expression /
+        FunctionExpression <- Identifier '(' Expression (',' Expression)* ')' / Identifier '(' ')'
         Constant <- < [0-9]+ >
         Parameter <- < [a-zA-Z_]+ >
         Variable <- < [a-zA-Z_]+ >
-        VariableExpression <- Parameter / Variable
-        Distribution <- Identifier
+        VariableExpression <- < [a-zA-Z_]+ >
+        Distribution <- < [a-zA-Z_]+ >
 
         # General
         Identifier <- < [a-zA-Z_]+ >
@@ -90,7 +90,7 @@ int vCount = 0;
 int declaring = false;
 
 // fixed lookups
-std::map<std::string, fnExpr> distributionMap;
+std::map<std::string, fnExpr> distributionMap = {{"normal", restan::distributions::normal}};
 std::map<std::string, fnExpr> functionMap;
 
 // memoize
@@ -223,7 +223,7 @@ void* eval(const Ast& sv) {
     if (choice == 1)
     {
       // type f = blah
-      unsigned int* a = reinterpret_cast<unsigned int*>(eval(*ast.nodes[0]));
+      unsigned int* a = reinterpret_cast<unsigned int*>(eval(*ast.nodes[1]));
       restan::Statement* declareAssign = new restan::StatementAssign(*a, (Expression*)eval(*ast.nodes[2]));
       delete(a);
       stHeap.push_back(declareAssign);
@@ -231,9 +231,14 @@ void* eval(const Ast& sv) {
     }
     else
     {
-      (restan::Statement*)eval(*ast.nodes[0]); // trigger
+      (restan::Statement*)eval(*ast.nodes[1]); // trigger
       return static_cast<restan::Statement*>(nullptr);
     }
+  };
+  if (ast.name == "ParameterDeclaration")
+  {
+    (restan::Statement*)eval(*ast.nodes[1]); // trigger
+    return static_cast<restan::Statement*>(nullptr);
   };
   if (ast.name == "DeclarationLHS")
   {
@@ -290,18 +295,16 @@ void* eval(const Ast& sv) {
         Expression* varExpr = (Expression*)eval(*ast.nodes[0]);
         std::string dstHandle(ast.nodes[1]->token);
         fnExpr func = distributionMap[dstHandle];
-        std::vector<Expression*>* _argVec((std::vector<Expression*>*)eval(*ast.nodes[2]));
-        std::vector<Expression*> argVec = *_argVec;
-        argVec.insert(argVec.begin(), varExpr);
 
         // copy vector into array
-        Expression** args = new Expression*[argVec.size()];
-        for (int i = 0; i < argVec.size(); i++)
-          args[i] = argVec[i];
+        Expression** args = new Expression* [sv.nodes.size() - 1];
+        for (int i = 2; i < sv.nodes.size(); i++)
+          args[i-1] = (Expression*)eval(*sv.nodes[i]);
+        args[0] = varExpr;
         exArrayHeap.push_back(args);
 
         // += statement conversion
-        Expression* fn = new ExpressionFunction(func, args, argVec.size());
+        Expression* fn = new ExpressionFunction(func, args, sv.nodes.size()-1);
         exHeap.push_back(fn);
         Expression* targetValue = new ExpressionVariable(variableNames["target"]);
         exHeap.push_back(targetValue);
@@ -358,10 +361,10 @@ void* eval(const Ast& sv) {
       }
       case 4: // block
       {
-        restan::Statement** list = new restan::Statement*[sv.nodes.size()];
+        restan::Statement** list = new restan::Statement*[sv.nodes.size() - 1];
         for (int i = 0; i < sv.nodes.size(); i++)
           list[i] = (restan::Statement*)eval(*ast.nodes[i]);
-        restan::Statement* fn = new restan::StatementBody(list, sv.nodes.size());
+        restan::Statement* fn = new restan::StatementBody(list, sv.nodes.size() - 1);
         stHeap.push_back(fn);
         return memoize(sv, "S{}", fn, true);
       }
@@ -495,6 +498,39 @@ void* eval(const Ast& sv) {
     return memoize(sv, "Constant", expr, true);
   };
 
+  if (ast.name == "VariableExpression")
+  {
+    Expression* expr;
+    int choice = 1;
+    if (parameterNames.count(sv.token) > 0)
+      choice = 0;
+    switch (choice)
+    {
+        case 0: // parameter
+        {
+          Ast* _ast = reinterpret_cast<Ast*>((void*) (&ast));
+          *(std::string*)(void*)(&_ast->name) = std::string("Parameter");
+          unsigned int * a = (unsigned int*)eval(*_ast);
+          unsigned int b = *a;
+          delete(a);
+          expr = new ExpressionParameter(b);
+          exHeap.push_back(expr);
+          return memoize(sv, "varExpr (Parameter)", expr, true);
+        }
+        case 1: // variable
+        {
+          Ast* _ast = reinterpret_cast<Ast*>((void*)(&ast));
+          *(std::string*)(void*)(&_ast->name) = std::string("Variable");
+          unsigned int * a = (unsigned int*)eval(*_ast);
+          unsigned int b = *a;
+          delete(a);
+          expr = new ExpressionVariable(b);
+          exHeap.push_back(expr);
+          return memoize(sv, "varExpr (Variable)", expr, true);
+        }
+    }
+  };
+
   if (ast.name == "Parameter")
   {
     std::string varName = trim(sv.token);
@@ -525,35 +561,6 @@ void* eval(const Ast& sv) {
     }
     else
       return new unsigned int (variableNames[varName]);
-  };
-
-  if (ast.name == "VariableExpression")
-  {
-    Expression* expr;
-    int choice = 1;
-    if (sv.nodes[0]->name == "Parameter")
-      choice = 0;
-    switch (choice)
-    {
-        case 0: // parameter
-        {
-          unsigned int * a = (unsigned int*)eval(*ast.nodes[0]);
-          unsigned int b = *a;
-          delete(a);
-          expr = new ExpressionParameter(b);
-          exHeap.push_back(expr);
-          return memoize(sv, "varExpr (Parameter)", expr, true);
-        }
-        case 1: // variable
-        {
-          unsigned int * a = (unsigned int*)eval(*ast.nodes[0]);
-          unsigned int b = *a;
-          delete(a);
-          expr = new ExpressionVariable(b);
-          exHeap.push_back(expr);
-          return memoize(sv, "varExpr (Variable)", expr, true);
-        }
-    }
   };
 };
 
