@@ -22,6 +22,19 @@ void restan::StatementBody::execute()
 		statements[i]->execute();
 	}
 }
+
+void restan::StatementBody::print(int depth) const
+{
+	for (int i = 0; i < depth; i++)
+		std::cout << "  ";
+	std::cout << "+ StatementBody {\n";
+	for (int i = 0; i < length; i++)
+		statements[i]->print(depth + 1);
+	for (int i = 0; i < depth; i++)
+		std::cout << "  ";
+	std::cout << "  }\n";
+}
+
 //// StatementAssign ////
 restan::StatementAssign::StatementAssign(unsigned int startIndex, unsigned int endIndex, Expression* expression)
 :	startIndex(startIndex),
@@ -46,6 +59,18 @@ void restan::StatementAssign::execute()
 	//std::cout << rhsVal << std::endl;
 	updateVariables(rhsVal, startIndex, endIndex);
 }
+
+void restan::StatementAssign::print(int depth) const
+{
+	for (int i = 0; i < depth; i++)
+		std::cout << "  ";
+	std::cout << "+ StatementAssign v[" << startIndex;
+	if (endIndex != startIndex + 1)
+		std::cout << ", "<< endIndex;
+	std::cout << "] <-\n";
+	expression->print(depth + 1);
+}
+
 //// StatementFunction ////
 //ExpressionValue (*sf)(ExpressionValue[], int)
 restan::StatementFunction::StatementFunction(restan::ExpressionFunction* expressionFunction)
@@ -55,4 +80,12 @@ restan::StatementFunction::StatementFunction(restan::ExpressionFunction* express
 void restan::StatementFunction::execute()
 {
 	funcEXPR->getValue();
+}
+
+void restan::StatementFunction::print(int depth) const
+{
+	for (int i = 0; i < depth; i++)
+		std::cout << "  ";
+	std::cout << "+ StatementFunction:\n";
+  std::cout << funcEXPR;
 }

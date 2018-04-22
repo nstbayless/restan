@@ -7,33 +7,36 @@ using namespace adept;
 
 Pi restan::pi;
 
-
-
-
-void restan::Pi::executeStatement() 
+void restan::Pi::executeStatement()
 {
   statement->execute();
 }
 
+const restan::Statement* restan::Pi::getLossStatement()
+{
+  return statement;
+}
 
 GradValue restan::Pi::getLoss(const adept::Vector& parameters)
 {
-  
   //Reset target to 0
   vars(0) = 0;
 
-  //std::cout << "In getLoss: " << parameters << std::endl;
-  //std::cout << params << std::endl;
-  params(range(0, discreteIndexStart - 1)) = parameters(range(0, discreteIndexStart - 1));
-  //std::cout << params << std::endl;
-  //setParams(parameters, 1);
+  // TODO: throw error if parameters.size() is not equal to numParams
+
+  // update parameters
+  params = parameters;
+
+  // begin autodiff
   stack.new_recording();
-  // set independent variable
+
+  // calculate loss
   executeStatement();
+
+  // set independent variable
   vars(0).set_gradient(1.0);
   stack.compute_adjoint();
 
-  //std::cout << "Get Loss: " << vars(0).value() << " gradient: " << params.get_gradient()(range(0, discreteIndexStart - 1)) << std::endl;
   // return value
   return GradValue(vars(0).value(), params.get_gradient());
 }
@@ -74,42 +77,44 @@ ExpressionValue restan::Pi::getVariables(unsigned int startIndex, unsigned int e
 void restan::Pi::setVariables(const adept::Vector& variables)
 {
   vars = variables;
+  numVariables = variables.size();
 }
 
 void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
+  // TODO: throw error if index exceeds numVariables
   unsigned int size = endIndex - startIndex;
   vars(range(startIndex, endIndex-1)) = vals(0, range(0, size-1));
-}
-
-unsigned int restan::Pi::numParams()
-{
-  return params.size();
 }
 
 //Setter only used for testing purposes
 void restan::Pi::setParams(const adept::Vector& parameters, unsigned int discreteIndStart, unsigned int* discreteDomLengths)
 {
   params = parameters;
+  numParams = params.size();
   discreteIndexStart = discreteIndStart;
   discreteDomainLengths = discreteDomLengths;
 }
 void restan::Pi::setParam(unsigned int index, double value)
 {
+  // TODO: throw error if index exceeds numParams
   params(index) = value;
 }
 
 void restan::setParams(const adept::Vector& parameters, unsigned int discreteIndexStart, unsigned int* discreteDomainLengths)
 {
+  // TODO: throw error if index exceeds numParams
   pi.setParams(parameters, discreteIndexStart, discreteDomainLengths);
 }
 
 void restan::setVariables(const adept::Vector& variables)
 {
+  // TODO: throw error if index exceeds numVariables
   pi.setVariables(variables);
 }
 
 void restan::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
+  // TODO: throw error if index exceeds numVariables
   pi.updateVariables(vals, startIndex, endIndex);
 }

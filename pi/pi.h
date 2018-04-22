@@ -20,7 +20,7 @@ namespace restan
   public:
     StartIndexInvalid() {}
   };
-  
+
   class Pi
   {
   public:
@@ -28,6 +28,7 @@ namespace restan
     GradValue getLoss(const adept::Vector& parameters);
     ExpressionValue getParams(unsigned int startIndex, unsigned int endIndex);
     void setLossStatement(Statement* s);
+    const restan::Statement* getLossStatement();
     void executeStatement();
     void setVariables(const adept::Vector& variableso);
     void updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex);
@@ -37,9 +38,10 @@ namespace restan
     void setParams(const adept::Vector& parameters, unsigned int discreteIndStart, unsigned int* discreteDomainLengths);
     void setParam(unsigned int index, double value);
     adept::aVector getParams();
-    unsigned int numParams();
     unsigned int discreteIndexStart;
     unsigned int* discreteDomainLengths;
+    unsigned int numParams = 0;
+    unsigned int numVariables = 0;
   private:
     //// these variables change from evaluation to evaluation (getLoss) ////
 
@@ -47,7 +49,7 @@ namespace restan
     adept::Stack stack;
     // parameter vector
     adept::aVector params;
-    
+
     // variable vector
     adept::aVector vars;
 

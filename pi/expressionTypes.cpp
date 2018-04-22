@@ -19,6 +19,14 @@ ExpressionValue restan::ExpressionConstant::getValue()
 restan::ExpressionConstant::ExpressionConstant(double c): value(1, 1) {
   value(0,0) = c;
 }
+void restan::ExpressionConstant::print(int depth) const {
+	int space = 2*depth;
+	while(space--)
+		std::cout << " ";
+	std::cout << "- Expression Constant (" << std::endl;
+	std::cout << value << ")\n";
+}
+
 
 //// ExpressionParameter ////
 restan::ExpressionParameter::ExpressionParameter(unsigned int parameterIndex):
@@ -35,6 +43,15 @@ ExpressionValue restan::ExpressionParameter::getValue()
   if (parameterIndexStart == -1)
     throw StartIndexInvalid();
   return pi.getParams(parameterIndexStart, parameterIndexEnd);
+}
+void restan::ExpressionParameter::print(int depth) const {
+	int space = 2*depth;
+	while(space--)
+		std::cout << " ";
+	std::cout << "- Expression Parameter: p[" << parameterIndexStart;
+  if (parameterIndexEnd != parameterIndexStart + 1)
+    std::cout <<", "<< parameterIndexEnd;
+  std::cout << "]\n";
 }
 
 
@@ -53,6 +70,15 @@ ExpressionValue restan::ExpressionVariable::getValue()
   if (variableIndexStart == -1)
     throw StartIndexInvalid();
   return pi.getVariables(variableIndexStart, variableIndexEnd);
+}
+void restan::ExpressionVariable::print(int depth) const {
+	int space = 2*depth;
+	while(space--)
+		std::cout << " ";
+    std::cout << "- Expression Variable: v[" << variableIndexStart;
+    if (variableIndexEnd != variableIndexStart + 1)
+      std::cout <<", "<< variableIndexEnd;
+    std::cout << "]\n";
 }
 
 
@@ -111,7 +137,16 @@ ExpressionValue restan::ExpressionArithmetic::getValue()
 
   return arithResult;
 }
+void restan::ExpressionArithmetic::print(int depth) const {
+	int space = 2*depth;
+	std::string operationName[5] = {"PLUS", "MINUS", "TIMES", "DOTPRODUCT", "DIV"};
 
+	while(space--)
+		std::cout << " ";
+	std::cout << "- Expression Arithmetic: Operation: " << operationName[operation] << std::endl;
+	lhs->print(depth+1);
+	rhs->print(depth+1);
+}
 
 //// ExpressionFunction ////
 restan::ExpressionFunction::ExpressionFunction(InterpFunc sf, Expression** expressions, unsigned int numExpressions)
@@ -129,6 +164,16 @@ ExpressionValue restan::ExpressionFunction::getValue()
   return sf(expressionVals, numExpressions);
 }
 
+void restan::ExpressionFunction::print(int depth) const {
+	int space = 2*depth;
+	while(space--)
+		std::cout << " ";
+	std::cout << "- ExpressionFunction @" << sf << std::endl;
+  for (int i = 0; i < numExpressions; i++)
+  {
+    expressions[i]->print(depth + 1);
+  }
+}
 
 //// ExpressionDereference ////
 restan::ExpressionDereference::ExpressionDereference(Expression* vecEXPR, Expression* indEXPR)

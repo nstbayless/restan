@@ -10,6 +10,7 @@ namespace restan
   {
   public:
     virtual void execute() = 0;
+    virtual void print(int depth = 0) const = 0;
   };
 }
 
