@@ -15,6 +15,10 @@ void restan::Pi::executeStatement()
   statement->execute();
 }
 
+const Statement* restan::Pi::getStatement()
+{
+  return statement;
+}
 
 GradValue restan::Pi::getLoss(const adept::Vector& parameters)
 {

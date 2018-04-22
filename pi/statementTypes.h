@@ -15,7 +15,7 @@ namespace restan
   public:
     StatementBody(Statement** statements, int length);
     virtual void execute() override;
-    virtual void print() override;
+    virtual void print() const override;
   private:
     int length;
     Statement** statements;
@@ -29,7 +29,7 @@ namespace restan
     StatementAssign( unsigned int index, Expression* expression);
     StatementAssign( unsigned int startIndex, unsigned int endIndex, Expression* expression);
     virtual void execute() override;
-    virtual void print() override;
+    virtual void print() const override;
   private:
     unsigned int startIndex;
     unsigned int endIndex;
@@ -42,7 +42,7 @@ namespace restan
   public:
     StatementFunction(restan::ExpressionFunction* expressionFunction);
     virtual void execute() override;
-    virtual void print() override;
+    virtual void print() const override;
   private:
     ExpressionFunction* funcEXPR;
   };

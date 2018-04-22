@@ -23,7 +23,7 @@ void restan::StatementBody::execute()
 	}
 }
 
-void restan::StatementBody::print(int depth)
+void restan::StatementBody::print(int depth) const
 {
 	for (int i = 0; i < depth; i++)
 		std::cout << "  ";
@@ -60,7 +60,7 @@ void restan::StatementAssign::execute()
 	updateVariables(rhsVal, startIndex, endIndex);
 }
 
-void restan::StatementAssign::print(int depth)
+void restan::StatementAssign::print(int depth) const
 {
 	for (int i = 0; i < depth; i++)
 		std::cout << "  ";
@@ -82,7 +82,7 @@ void restan::StatementFunction::execute()
 	funcEXPR->getValue();
 }
 
-void restan::StatementFunction::print(int depth)
+void restan::StatementFunction::print(int depth) const
 {
 	for (int i = 0; i < depth; i++)
 		std::cout << "  ";

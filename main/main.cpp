@@ -29,6 +29,7 @@ int main(int argc, char** args)
   try
   {
     restan::parseStan(testProgram);
+    pi.getLossStatement()->print();
   }
   catch (restan::ParseError& e)
   {
