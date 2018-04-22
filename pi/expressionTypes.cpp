@@ -18,7 +18,7 @@ ExpressionValue restan::ExpressionConstant::getValue()
 restan::ExpressionConstant::ExpressionConstant(double c): value(1, 1) {
   value(0,0) = c;
 }
-void restan::ExpressionConstant::printTree(int depth) {
+const void restan::ExpressionConstant::printTree(int depth) {
 	int space = 2*depth;
 	while(space--)
 		std::cout << " " <<;
@@ -43,7 +43,7 @@ ExpressionValue restan::ExpressionParameter::getValue()
     throw StartIndexInvalid();
   return pi.getParams(parameterIndexStart, parameterIndexEnd);
 }
-void restan::ExpressionParameter::printTree(int depth) {
+const void restan::ExpressionParameter::printTree(int depth) {
 	int space = 2*depth;
 	while(space--)
 		std::cout << " " <<;
@@ -68,7 +68,7 @@ ExpressionValue restan::ExpressionVariable::getValue()
     throw StartIndexInvalid();
   return pi.getVariables(variableIndexStart, variableIndexEnd);
 }
-void restan::ExpressionVariable::printTree(int depth) {
+const void restan::ExpressionVariable::printTree(int depth) {
 	int space = 2*depth;
 	while(space--)
 		std::cout << " " <<;
@@ -132,7 +132,7 @@ ExpressionValue restan::ExpressionArithmetic::getValue()
 
   return arithResult;
 }
-void restan::ExpressionArithmetic::printTree(int depth) {
+const void restan::ExpressionArithmetic::printTree(int depth) {
 	int space = 2*depth;
 	std::string operationName[5] = {"PLUS", "MINUS", "TIMES", "DOTPRODUCT", "DIV"};
 
