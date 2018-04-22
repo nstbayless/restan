@@ -543,7 +543,7 @@ void restan::parseStan(std::string stanCode)
 
   parser p(syntax);
 
-  std::cout<<"set up actions\n";
+  p.enable_ast();
 
   //p.enable_packrat_parsing();
   p.parse(stanCode.c_str());
