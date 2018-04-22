@@ -21,7 +21,7 @@ restan::ExpressionConstant::ExpressionConstant(double c): value(1, 1) {
 const void restan::ExpressionConstant::printTree(int depth) {
 	int space = 2*depth;
 	while(space--)
-		std::cout << " " <<;
+		std::cout << " ";
 	std::cout << "-Expression Constant" << std::endl;
 	value.printTree(depth+1);
 }
@@ -46,7 +46,7 @@ ExpressionValue restan::ExpressionParameter::getValue()
 const void restan::ExpressionParameter::printTree(int depth) {
 	int space = 2*depth;
 	while(space--)
-		std::cout << " " <<;
+		std::cout << " ";
 	std::cout << "-Expression Parameter: indStart: " << parameterIndexStart <<
 	"indEnd: " << parameterIndexEnd << std::endl;
 }
@@ -71,7 +71,7 @@ ExpressionValue restan::ExpressionVariable::getValue()
 const void restan::ExpressionVariable::printTree(int depth) {
 	int space = 2*depth;
 	while(space--)
-		std::cout << " " <<;
+		std::cout << " ";
 	std::cout << "-Expression Variable: indStart: " << variableIndexStart <<
 	"indEnd: " << variableIndexEnd << std::endl;
 }
@@ -137,7 +137,7 @@ const void restan::ExpressionArithmetic::printTree(int depth) {
 	std::string operationName[5] = {"PLUS", "MINUS", "TIMES", "DOTPRODUCT", "DIV"};
 
 	while(space--)
-		std::cout << " " <<;
+		std::cout << " ";
 	std::cout << "-Expression Arithmetic: Operation: " << operationName[operation] << std::endl;
 	lhs.printTree(depth+1);
 	rhs.printTree(depth+1);
