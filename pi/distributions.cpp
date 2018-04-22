@@ -68,7 +68,7 @@ ExpressionValue restan::distributions::poisson(ExpressionValue* exps, unsigned i
     {
       double x = exps[0](0,i).value();
       result +=  -log(pow(exps[1](0,i), exps[0](0,i)) * exp(-exps[1](0,i)) / fact(round(x)));
-      std::cout << "Summing nll: " << result << std::endl;
+      //std::cout << "Summing nll: " << result << std::endl;
     }
     return result;
 }

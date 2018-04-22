@@ -4,7 +4,7 @@
 #include "pi/expressionTypes.h"
 #include "pi/statementTypes.h"
 #include "pi/distributions.h"
-
+#include "pi/functions.h"
 
 #include "hmcmc/HMCMC.h"
 
@@ -58,19 +58,19 @@ void lambdaFromNormalTest()
 
 void discreteTest()
 {
-		double lambda = 0.5;
+	double logLambda = 0.5;
 	double Z = 3;
 	double k = 2*Z + 3;
 	double target = 0;
 
-	Vector parameters = {lambda, Z};
+	Vector parameters = {logLambda, Z};
 	setParams(parameters, 1);
 
 	Vector variables = {target, k};
 	setVariables(variables);
 
 
-	ExpressionParameter lambdaEXPR(0);
+	ExpressionParameter logLambdaEXPR(0);
 	ExpressionParameter ZEXPR(1);
 	ExpressionVariable targetEXPR(0);
 	ExpressionVariable kEXPR(1);
@@ -79,9 +79,9 @@ void discreteTest()
 	ExpressionConstant twoEXPR(2);
 	ExpressionConstant threeEXPR(3);
 
-	//lambda ~ N(0,1)
+	//log lambda ~ N(0,1)
 	restan::Expression* NormalEXPRArray[3];
-	NormalEXPRArray[0] = &lambdaEXPR;
+	NormalEXPRArray[0] = &logLambdaEXPR;
 	NormalEXPRArray[1] = &muEXPR;
 	NormalEXPRArray[2] = &sigmaEXPR;
 	
@@ -94,10 +94,15 @@ void discreteTest()
 	ExpressionArithmetic twoZPlusThreeEXPR(PLUS, &threeEXPR, &twoZEXPR);
 	StatementAssign kStatement(1, &twoZPlusThreeEXPR);
 
-	//k ~ Poisson(lambda)
+	//k ~ Poisson(exp(log lambda))
+
+	restan::Expression* ExpLogLambdaArray[1];
+	ExpLogLambdaArray[0] = &logLambdaEXPR;
+	ExpressionFunction expLogLambdaEXPR(restan::functions::exp, ExpLogLambdaArray, 1);
+
 	restan::Expression* PoissonEXPRArray[2];
 	PoissonEXPRArray[0] = &ZEXPR;
-	PoissonEXPRArray[1] = &lambdaEXPR;
+	PoissonEXPRArray[1] = &expLogLambdaEXPR;
 
 	ExpressionFunction poissonFuncEXPR(restan::distributions::poisson, PoissonEXPRArray, 2);
 	ExpressionArithmetic targetPoissonSumEXPR(PLUS, &targetEXPR, &poissonFuncEXPR);
@@ -113,12 +118,16 @@ void discreteTest()
 	pi.setLossStatement(&piStatement);
 
 
-	int numSamples = 1;
+	int numSamples = 5000;
 	Vector samples[numSamples];
-	restan::HMCMC(getLoss, parameters, 0.1, 25, numSamples, samples);
+	restan::HMCMC(getLoss, parameters(range(0, 0)), 0.1, 25, numSamples, samples);
+
+	double averageLambda = 0;
   	for (int i = 0; i < numSamples; i++) {
-		std::cout<<samples[i]<<std::endl;
+  		averageLambda += samples[i](0);
+		//std::cout<<samples[i]<<std::endl;
   	}
+  	std::cout << averageLambda/numSamples << std::endl;
 }
 
 
