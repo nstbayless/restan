@@ -2,13 +2,61 @@
 #include "HMCMC.h"
 #include "pi/pi.h"
 
+
 using namespace restan;
 using namespace adept;
+using namespace std;
 
-Pi pi;
+int SampleDiscrete(double* unnormalizedProb, unsigned int size, double Z)
+{
+	//Random number between 0 and Z
+	double sampledDouble = ( ((double) rand()) / (double) RAND_MAX ) * Z;
+
+	for (int i = 0; i < size; i++) {
+		sampledDouble -= unnormalizedProb[i];
+		if (sampledDouble < 0)
+			return i;
+	}
+	std::cout << "Sampling Error!" << std::endl;
+	return -1;
+}
+
 void restan::GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector q0, double epsilon, unsigned int L, unsigned int samples, adept::Vector* samplesOut, unsigned int epoch, unsigned int L2)
 {
-	while (samples > 0)
+	//srand(time(0));
+
+	//Test using [lambda Z1 Z2] where Z1 = [0, 1, 2, 3], Z2 = [0, 1, 2, 3, 4]
+	//Run one sample of HMCMC 
+	restan::HMCMC(u, q0, epsilon, L, 1, samplesOut);
+
+
+	//Update one discrete parameter
+	unsigned int numParams = pi.numParams();
+	unsigned int discreteIndexStart = pi.discreteIndexStart;
+	unsigned int numDiscrete = numParams - discreteIndexStart;
+	unsigned int randDiscreteIndex = (rand() % numDiscrete);
+	unsigned int randDiscreteParamIndex = randDiscreteIndex + discreteIndexStart;
+
+	unsigned int* domainSizes = pi.discreteDomainLengths;
+	unsigned int randDiscreteDomainSize = domainSizes[randDiscreteIndex];
+
+	std::cout << "Rand Discrete Index: " << randDiscreteIndex << " Domain Size: " << randDiscreteDomainSize << std::endl;
+
+	double unnormalizedProb[randDiscreteDomainSize];
+	double Z = 0;
+	for (int i = 0; i < randDiscreteDomainSize; i++) {
+		pi.setParam(randDiscreteParamIndex, i);
+		unnormalizedProb[i] = exp(-u(*samplesOut).first);
+		Z += unnormalizedProb[i];	
+		std::cout << "unnormalizedProb:[ " << i << "] : " << unnormalizedProb[i] << std::endl;
+	}
+	unsigned int newDiscreteDomainIndex = SampleDiscrete(unnormalizedProb, randDiscreteDomainSize, Z);
+	std::cout <<"newDiscreteDomainIndex: " << newDiscreteDomainIndex << std::endl;
+
+
+
+
+/*	while (samples > 0)
 	{
 		restan::HMCMC(u, q0, epsilon, L, 1, samplesOut);
 		//From all the discrete parameters, choose a parameter
@@ -18,6 +66,6 @@ void restan::GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector 
 
 		samples--;
 		samplesOut++;
-	}
+	}*/
 	
 }
