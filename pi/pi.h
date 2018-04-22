@@ -21,6 +21,18 @@ namespace restan
     StartIndexInvalid() {}
   };
 
+  class PiError : public std::exception
+  {
+    public:
+      PiError(std::string s): whatText(s) {}
+      std::string what()
+      {
+        return whatText.c_str();
+      }
+    private:
+    std::string whatText;
+  };
+
   class Pi
   {
   public:

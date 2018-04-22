@@ -23,9 +23,9 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   vars(0) = 0;
 
   // TODO: throw error if parameters.size() is not equal to numParams
-  if (parameters.size() != numParams)
+  if (params.size() != numParams)
   {
-     throw std::exception("params.size() is not numParams in Pi::getLoss:31");
+     throw PiError("params.size() is not numParams in Pi::getLoss:31");
   }
 
   // update parameters
@@ -86,9 +86,9 @@ void restan::Pi::setVariables(const adept::Vector& variables)
 
 void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
-  if (index > numVariables)
+  if (endIndex > numVariables)
   {
-     throw std::exception("index exceeds numVariables in restan::updateVariables");
+     throw PiError("endIndex exceeds numVariables in restan::updateVariables");
   }
   // TODO: throw error if index exceeds numVariables
   unsigned int size = endIndex - startIndex;
@@ -108,7 +108,7 @@ void restan::Pi::setParam(unsigned int index, double value)
   // TODO: throw error if index exceeds numParams
   if (index > numParams)
   {
-     throw std::exception("index exceeds numParams in Pi::setParam");
+     throw PiError("index exceeds numParams in Pi::setParam");
   }
 
   params(index) = value;
@@ -116,9 +116,9 @@ void restan::Pi::setParam(unsigned int index, double value)
 
 void restan::setParams(const adept::Vector& parameters, unsigned int discreteIndexStart, unsigned int* discreteDomainLengths)
 {
-  if (index > numParams)
+  if (parameters.size() > pi.numParams) //TODO: check
   {
-     throw std::exception("index exceeds numParams in Pi::setParams");
+     throw PiError("index exceeds numParams in restan::setParams");
   }
   // TODO: throw error if index exceeds numParams
   pi.setParams(parameters, discreteIndexStart, discreteDomainLengths);
@@ -126,9 +126,9 @@ void restan::setParams(const adept::Vector& parameters, unsigned int discreteInd
 
 void restan::setVariables(const adept::Vector& variables)
 {
-  if (index > numVariables)
+  if (variables.size() > pi.numVariables) //TODO: check
   {
-     throw std::exception("index exceeds numVariables in Pi::setVariables");
+     throw PiError("index exceeds numVariables in Pi::setVariables");
   }
   // TODO: throw error if index exceeds numVariables
   pi.setVariables(variables);
@@ -136,9 +136,9 @@ void restan::setVariables(const adept::Vector& variables)
 
 void restan::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
-  if (index > numVariables)
+  if (endIndex > pi.numVariables)
   {
-     throw std::exception("index exceeds numVariables in Pi::updateVariables");
+     throw PiError("endIndex exceeds numVariables in Pi::updateVariables");
   }
   // TODO: throw error if index exceeds numVariables
   pi.updateVariables(vals, startIndex, endIndex);
