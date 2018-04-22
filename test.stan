@@ -1,4 +1,3 @@
-
       __BEGIN_STAN_CODE__
       parameters
       {

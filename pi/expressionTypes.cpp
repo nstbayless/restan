@@ -18,6 +18,14 @@ ExpressionValue restan::ExpressionConstant::getValue()
 restan::ExpressionConstant::ExpressionConstant(double c): value(1, 1) {
   value(0,0) = c;
 }
+void restan::ExpressionConstant::printTree(int depth) {
+	int space = 2*depth;
+	while(space--)
+		std::cout << " " <<;
+	std::cout << "-Expression Constant" << std::endl;
+	value.printTree(depth+1);
+}
+
 
 //// ExpressionParameter ////
 restan::ExpressionParameter::ExpressionParameter(unsigned int parameterIndex):
@@ -34,6 +42,13 @@ ExpressionValue restan::ExpressionParameter::getValue()
   if (parameterIndexStart == -1)
     throw StartIndexInvalid();
   return pi.getParams(parameterIndexStart, parameterIndexEnd);
+}
+void restan::ExpressionParameter::printTree(int depth) {
+	int space = 2*depth;
+	while(space--)
+		std::cout << " " <<;
+	std::cout << "-Expression Parameter: indStart: " << parameterIndexStart <<
+	"indEnd: " << parameterIndexEnd << std::endl;
 }
 
 
@@ -52,6 +67,13 @@ ExpressionValue restan::ExpressionVariable::getValue()
   if (variableIndexStart == -1)
     throw StartIndexInvalid();
   return pi.getVariables(variableIndexStart, variableIndexEnd);
+}
+void restan::ExpressionVariable::printTree(int depth) {
+	int space = 2*depth;
+	while(space--)
+		std::cout << " " <<;
+	std::cout << "-Expression Variable: indStart: " << variableIndexStart <<
+	"indEnd: " << variableIndexEnd << std::endl;
 }
 
 
@@ -110,7 +132,16 @@ ExpressionValue restan::ExpressionArithmetic::getValue()
 
   return arithResult;
 }
+void restan::ExpressionArithmetic::printTree(int depth) {
+	int space = 2*depth;
+	std::string operationName[5] = {"PLUS", "MINUS", "TIMES", "DOTPRODUCT", "DIV"};
 
+	while(space--)
+		std::cout << " " <<;
+	std::cout << "-Expression Arithmetic: Operation: " << operationName[operation] << std::endl;
+	lhs.printTree(depth+1);
+	rhs.printTree(depth+1);
+}
 
 //// ExpressionFunction ////
 restan::ExpressionFunction::ExpressionFunction(InterpFunc sf, Expression** expressions, unsigned int numExpressions)
