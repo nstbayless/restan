@@ -57,8 +57,7 @@ auto syntax = R"(
         ExpressionTerm <- ExpressionFactor (FactorOp ExpressionFactor)*
         TermOp <- '+' / '-'
         FactorOp <- '*' / '/'
-        ExpressionFactor <- FunctionExpression / '(' Expression ')' /
-                            Constant / VariableExpression
+        ExpressionFactor <- FunctionExpression / '(' Expression ')' / Constant / VariableExpression
         FunctionExpression <- Identifier '(' ArgList ')'
         ArgList <- Expression ',' ArgList / Expression '|' ArgList / Expression /
         Constant <- < [0-9]+ >
@@ -140,26 +139,34 @@ void restan::parseStan(std::string stanCode)
 
   // memoize
   std::map<std::string, void*> memoizedPointers;
-  auto memoize = [&](const SemanticValues& sv, void* proposed, bool dispose = false) -> void*
+  auto memoize = [&](const Ast& sv, std::string production, void* proposed, bool dispose = false) -> void*
   {
-    std::cout << sv.token() << std::endl;
-    if (memoizedPointers.count(sv.token()) > 0)
+    auto lookup = std::string(production) + " >~!~< token-(\"" + sv.token + std::string("\") ~~&>@ using choice(): ") + std::to_string((sv.choice()));
+    std::cout << lookup << " (proposed pointer:" << proposed << ")" << std::endl;
+    if (memoizedPointers.count(lookup) > 0)
     {
       // use pre-existing
       if (dispose)
-      delete (char*)proposed;
-      return memoizedPointers[sv.token()];
+        delete (char*)proposed;
+      std::cout << "  found in cache!" << std::endl;
+      return memoizedPointers[lookup];
     }
     else
     {
       // memoize and return
-      memoizedPointers[sv.token()] = proposed;
+      memoizedPointers[lookup] = proposed;
+      std::cout << "  memoized for future use." << std::endl;
       return proposed;
     }
   };
 
+  
+
   parser p(syntax);
-  p["Code"] = [&](const SemanticValues& sv)
+
+
+
+  p["Code"] = [&](const Ast& sv)
   {
     std::cout<<"took root production\n";
     Statement* modelStatement = sv[2].get<Statement*>();
@@ -170,12 +177,12 @@ void restan::parseStan(std::string stanCode)
     pi.setLossStatement(lossStatement);
   };
   std::cout<<"parsed syntax\n";
-  p["OptionalParameters"] = [&](const SemanticValues& sv)
+  p["OptionalParameters"] = [&](const Ast& sv)
   {
     for (int i = 0; i < sv.size(); i ++)
       sv[i].get<Statement*>(); // trigger;
   };
-  p["OptionalTransformedParameters"] = [&](const SemanticValues& sv)
+  p["OptionalTransformedParameters"] = [&](const Ast& sv)
   {
     Statement** sl = new Statement*[sv.size()+1];
     Statement** slo = sl;
@@ -191,23 +198,23 @@ void restan::parseStan(std::string stanCode)
     }
     return std::pair<Statement**, int>(sl, slo - sl);
   };
-  p["Model"] = [&](const SemanticValues& sv)
+  p["Model"] = [&](const Ast& sv) -> void*
   {
     Statement* modelStatement = sv[2].get<Statement*>();
-    return memoize(sv, modelStatement);
+    return memoize(sv, "Model", (void*)modelStatement);
   };
-  p["DeclarationOrStatement"] = [&](const SemanticValues& sv)
+  p["DeclarationOrStatement"] = [&](const Ast& sv) -> void*
   {
     return sv[0].get<Expression*>();
   };
-  p["VariableDeclaration"] = [&](const SemanticValues& sv) -> void*
+  p["VariableDeclaration"] = [&](const Ast& sv) -> void*
   {
     if (sv.choice() == 1)
     {
       // type f = blah
       Statement* declareAssign = new StatementAssign(sv[0].get<unsigned int>(), sv[2].get<Expression*>());
       stHeap.push_back(declareAssign);
-      return (Statement*) memoize(sv, declareAssign, true);
+      return (Statement*) memoize(sv, "VD", declareAssign, true);
     }
     else
     {
@@ -215,17 +222,18 @@ void restan::parseStan(std::string stanCode)
       return static_cast<Statement*>(nullptr);
     }
   };
-  p["DeclarationLHS"] = [&](const SemanticValues& sv)
+  p["DeclarationLHS"] = [&](const Ast& sv) -> unsigned int
   {
     std::string varName = trim(sv[sv.size() - 1].get<std::string>());
-    return variableNames[trim(varName)], true;
+    return variableNames[trim(varName)];
   };
-  p["Identifier"] = [&](const SemanticValues& sv) -> void*
+  p["Identifier"] = [&](const Ast& sv) -> void*
   {
-    return memoize(sv, new std::string(trim(sv.token())), true);
+    return memoize(sv, "Ident", new std::string(trim(sv.token)), true);
   };
-  p["Statements"] = [&](const SemanticValues& sv) -> void*
+  p["Statements"] = [&](const Ast& sv) -> void*
   {
+    std::cout<< " statements -- " << sv.token << std::endl;
     switch (sv.choice())
     {
       case 0:
@@ -238,17 +246,18 @@ void restan::parseStan(std::string stanCode)
           stArrayHeap.push_back(sl);
           Statement* sb = new StatementBody(sl, 2);
           stHeap.push_back(sb);
-          return memoize(sv, sb, true);
+          return memoize(sv, "Ss1", sb, true);
         }
         else
-          return memoize(sv, first, false);
+          return memoize(sv, "Ss2", first, false);
       }
       default:
         return static_cast<Statement*>(nullptr);
     }
   };
-  p["Statement"] = [&](const SemanticValues& sv) -> void*
+  p["Statement"] = [&](const Ast& sv) -> void*
   {
+    std::cout << "statement -- " << sv.token << std::endl;
     switch (sv.choice())
     {
       case 0: // a ~ D
@@ -273,7 +282,7 @@ void restan::parseStan(std::string stanCode)
         exHeap.push_back(sum);
         Statement* s = new StatementAssign(variableNames["target"], sum);
         stHeap.push_back(s);
-        return memoize(sv, s, true);
+        return memoize(sv, "S~", s, true);
       }
       case 1: // assignOp
       case 2: // relOp
@@ -308,13 +317,13 @@ void restan::parseStan(std::string stanCode)
         }
         Statement* s = new StatementAssign(variableIndex, rhs);
         stHeap.push_back(s);
-        return memoize(sv, s, true);
+        return memoize(sv, "Sasgn", s, true);
       }
       case 3: // function
       {
         StatementFunction* fn = new StatementFunction(sv[0].get<ExpressionFunction*>());
         stHeap.push_back(fn);
-        return memoize(sv, fn, true);
+        return memoize(sv, "Sfn", fn, true);
       }
       case 4: // block
       {
@@ -323,29 +332,29 @@ void restan::parseStan(std::string stanCode)
           list[i] = sv[i].get<Statement*>();
         Statement* fn = new StatementBody(list, sv.size());
         stHeap.push_back(fn);
-        return memoize(sv, fn, true);
+        return memoize(sv, "S{}", fn, true);
       }
     }
   };
-  p["AssignOp"] = [&](const SemanticValues& sv)
+  p["AssignOp"] = [&](const Ast& sv) -> void*
   {
-    return memoize(sv, new std::string(sv.token()), true);
+    return memoize(sv, "AsOp", new std::string(sv.token), true);
   };
-  p["RelOp"] = [&](const SemanticValues& sv)
+  p["RelOp"] = [&](const Ast& sv) -> void*
   {
-    return memoize(sv, new std::string(sv.token()), true);
+    return memoize(sv, "RelOp", new std::string(sv.token), true);
   };
-  p["TermOp"] = [&](const SemanticValues& sv)
+  p["TermOp"] = [&](const Ast& sv) -> void*
   {
-    return memoize(sv, new std::string(sv.token()), true);
+    return memoize(sv, "TOp", new std::string(sv.token), true);
   };
-  p["FactorOp"] = [&](const SemanticValues& sv)
+  p["FactorOp"] = [&](const Ast& sv) -> void*
   {
-    return memoize(sv, new std::string(sv.token()), true);
+    return memoize(sv, "FOp", new std::string(sv.token), true);
   };
 
 
-  p["ArgList"] = [&](const SemanticValues& sv) -> void*
+  p["ArgList"] = [&](const Ast& sv) -> void*
   {
     // very bad code that passes vectors around :C
     switch (sv.choice())
@@ -355,44 +364,45 @@ void restan::parseStan(std::string stanCode)
       {
         std::vector<Expression*>* svexp = new std::vector<Expression*>(*(sv[1].get<std::vector<Expression*>*>()));
         svexp->insert(svexp->begin(), sv[0].get<Expression*>());
-        return memoize(sv, svexp, true);
+        return memoize(sv, "ArglA", svexp, true);
       }
       case 2:
       {
         std::vector<Expression*>* svexp = new std::vector<Expression*>();
         svexp->push_back(sv[0].get<Expression*>());
-        return memoize(sv, svexp, true);
+        return memoize(sv, "ArglB", svexp, true);
       }
       case 3:
-        return memoize(sv, new std::vector<Expression*>(), true);
+        return memoize(sv, "ArglEmpty", new std::vector<Expression*>(), true);
     }
   };
-  p["Distribution"] = [&](const SemanticValues& sv)
+  p["Distribution"] = [&](const Ast& sv) -> fnExpr
   {
-    if (distributionMap[sv.token()])
-      return distributionMap[sv.token()];
+    if (distributionMap[sv.token])
+      return distributionMap[sv.token];
     return static_cast<fnExpr>(nullptr);
   };
 
-  p["Expression"] = [&](const SemanticValues& sv)
+  p["Expression"] = [&](const Ast& sv) -> void*
   {
-	Expression* expr = sv[0].get<Expression*>();
+    std::cout<< "Expression: " << sv.token << std::endl;
+	  Expression* expr = sv[0].get<Expression*>();
     for (int i=1; i<sv.size(); i+=2)
     {
-		if (sv[i].get<std::string>().compare("+") == 0) {
-			expr = new ExpressionArithmetic(restan::PLUS, expr, sv[i+1].get<Expression*>());
-			exHeap.push_back(expr);
-		} else if (sv[i].get<std::string>().compare("-") == 0) {
-			expr = new ExpressionArithmetic(restan::MINUS, expr, sv[i+1].get<Expression*>());
-			exHeap.push_back(expr);
-		} else {
-      // ??
-		}
-	}
-	return memoize(sv, expr);
+  		if (sv[i].get<std::string>().compare("+") == 0) {
+  			expr = new ExpressionArithmetic(restan::PLUS, expr, sv[i+1].get<Expression*>());
+  			exHeap.push_back(expr);
+  		} else if (sv[i].get<std::string>().compare("-") == 0) {
+  			expr = new ExpressionArithmetic(restan::MINUS, expr, sv[i+1].get<Expression*>());
+  			exHeap.push_back(expr);
+  		} else {
+        // ??
+  		}
+	  }
+	  return memoize(sv, "Expression", expr);
   };
 
-  p["FunctionExpression"] = [&](const SemanticValues& sv)
+  p["FunctionExpression"] = [&](const Ast& sv) -> void*
   {
     std::string funcId = sv[0].get<std::string>();
 		if (functionMap.find(funcId) == functionMap.end())
@@ -410,10 +420,10 @@ void restan::parseStan(std::string stanCode)
 
     Expression* fn = new ExpressionFunction(func, args, sv.size());
     exHeap.push_back(fn);
-    return memoize(sv, fn, true);
+    return memoize(sv, "FnExpr", fn, true);
   };
 
-  p["ExpressionTerm"] = [&](const SemanticValues& sv)
+  p["ExpressionTerm"] = [&](const Ast& sv) -> void*
   {
   	Expression* expr = sv[0].get<Expression*>();
     for (int i=1; i<sv.size(); i+=2)
@@ -426,50 +436,51 @@ void restan::parseStan(std::string stanCode)
   			exHeap.push_back(expr);
   		}
   	}
-  	return memoize(sv, expr, true);
+  	return memoize(sv, "ExprTrm", expr, true);
   };
 
-  p["ExpressionFactor"] = [&](const SemanticValues& sv)
+  p["ExpressionFactor"] = [&](const Ast& sv) -> void*
   {
+    std::cout<< "ExpressionFactor: " << sv.token << std::endl;
     switch (sv.choice())
     {
       case 0:
-		return sv[0].get<Expression*>();
+		    return sv[0].get<Expression*>();
       case 1:
-		return sv[0].get<Expression*>();
-      case 2:
+		    return sv[0].get<Expression*>();
+      case 2: // constant
         return sv[0].get<Expression*>();
       case 3:
         return sv[0].get<Expression*>();
     }
   };
 
-  p["Constant"] = [&](const SemanticValues& sv)
+  p["Constant"] = [&](const Ast& sv) -> void*
   {
-    Expression* expr = new ExpressionConstant(stoi(sv.token(), nullptr, 10));
+    Expression* expr = new ExpressionConstant(stoi(sv.token, nullptr, 10));
     exHeap.push_back(expr);
-    return memoize(sv, expr, true);
+    return memoize(sv, "Constant", expr, true);
   };
 
-  p["Parameter"] = [&](const SemanticValues& sv) -> unsigned int
+  p["Parameter"] = [&](const Ast& sv) -> unsigned int
   {
-    std::string varName = trim(sv.token());
+    std::string varName = trim(sv.token);
     if (!parameterNames.count(varName))
       return -1;
     else
       return parameterNames[varName];
   };
 
-  p["Variable"] = [&](const SemanticValues& sv) -> unsigned int
+  p["Variable"] = [&](const Ast& sv) -> unsigned int
   {
-    std::string varName = trim(sv.token());
+    std::string varName = trim(sv.token);
     if (!variableNames.count(varName))
       return -1;
     else
       return variableNames[varName];
   };
 
-  p["VariableExpression"] = [&](const SemanticValues& sv)
+  p["VariableExpression"] = [&](const Ast& sv) -> void*
   {
     Expression* expr;
     switch (sv.choice())
@@ -477,11 +488,11 @@ void restan::parseStan(std::string stanCode)
         case 0: // parameter
           expr = new ExpressionParameter(sv[0].get<unsigned int>());
           exHeap.push_back(expr);
-          return memoize(sv, expr, true);
+          return memoize(sv, "varExpr (Parameter)", expr, true);
         case 1: // variable
           expr = new ExpressionVariable(sv[0].get<unsigned int>());
           exHeap.push_back(expr);
-          return memoize(sv, expr, true);;
+          return memoize(sv, "varExpr (Variable)", expr, true);;
     }
   };
 

@@ -18,7 +18,7 @@ int main(int argc, char** args)
     __BEGIN_STAN_CODE__
     model
     {
-      target += 3;
+      target += (3);
     }
     __END_STAN_CODE__
   )");
