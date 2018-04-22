@@ -17,14 +17,14 @@ TEST_CASE( "Statement testing and StartIndexInvalid test" )
 
 	ExpressionArithmetic arithExpr(TIMES, &constExpr, &paramsExpr);
 
-	StatementAssign sa(restan::EQUALS, 1, 3, &arithExpr);
+	StatementAssign sa(1, 3, &arithExpr);
 	sa.execute();
 
 	ExpressionValue expectedAssignedVariables(1,4); expectedAssignedVariables << 10, 4, 6, 13;
 	REQUIRE( compareEV(varEXPR.getValue(), expectedAssignedVariables) );
 
 	//Test if startIndex == -1
-	StatementAssign saInvalid(restan::EQUALS, -1, 3, &arithExpr);
+	StatementAssign saInvalid(-1, 3, &arithExpr);
 	CHECK_THROWS(saInvalid.execute());
 
 

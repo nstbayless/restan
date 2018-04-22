@@ -40,9 +40,9 @@ int main(int argc, char** args)
 
 	ExpressionArithmetic targetSumEXPR(PLUS, &targetEXPR, &normalFuncEXPR);
 
-	StatementAssign sa(restan::EQUALS, 0, 1, &targetSumEXPR);
+	StatementAssign sa(0, 1, &targetSumEXPR);
 
-	pi.setStatement(&sa);
+	pi.setLossStatement(&sa);
 
 	Vector samples[1000];
 	restan::HMCMC(getLoss, parameters, 0.1, 25, 1000, samples);
