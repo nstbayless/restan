@@ -37,12 +37,12 @@ auto syntax = R"(
         Code <- '__BEGIN_STAN_CODE__' OptionalData OptionalParameters OptionalTransformedParameters Model '__END_STAN_CODE__'
         OptionalData <-
         OptionalParameters <- 'parameters' '{' ( ParameterDeclaration ';' )* '}' /
-        OptionalTransformedParameters <- 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
+        OptionalTransformedParameters <- 'transformed' 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
         Model <- 'model' Statement
         DeclarationOrStatement <- VariableDeclaration / Statement
 
         # Declarations
-        VariableDeclaration <- DeclarationLHS / DeclarationLHS AssignOp Expression
+        VariableDeclaration <- DeclarationLHS AssignOp Expression / DeclarationLHS
         ParameterDeclaration <- Type Parameter ### / Type '<' BoundsList Identifier
         DeclarationLHS <- Type Variable ### / Type '<' BoundsList Identifier
         Type <- 'int' / 'real' / 'vector' / 'matrix'
@@ -169,15 +169,46 @@ void* eval(const Ast& sv) {
     declaring = 1;
     eval(*ast.nodes[1]); // parameters
     declaring = 2;
-    auto* _tppair = (std::pair<restan::Statement**, int>*)eval(*(ast.nodes[2])); // transformed parameters
-    std::pair<restan::Statement**, int> ttpair(*_tppair);
-    delete(_tppair);
+    std::pair<restan::Statement**, int> ttpair;
+    restan::Statement* decStatement;
+    if (ast.nodes[2]->nodes.size() > 0)
+    {
+      if (ast.nodes[2]->nodes[0]->name != "Type" && ast.nodes[2]->nodes[0]->name != "DeclarationLHS")
+      {
+        // transformed parameters with at least TWO statmeents (YES, checking for "Type" tells us if there is only one statement, because that's the amazing way that this library works.)
+        auto* _tppair = (std::pair<restan::Statement**, int>*)eval(*(ast.nodes[2])); // transformed parameters
+        ttpair = *_tppair;
+        delete(_tppair);
+      }
+      else
+      {
+        // transformed parameters but ONLY ONE statement, because that's different
+        decStatement = (restan::Statement*)eval(*ast.nodes[2]);
+      }
+    }
     declaring = 0;
     restan::Statement* modelStatement = (restan::Statement*)eval(*ast.nodes[3]); // model
-    ttpair.first[ttpair.second] = modelStatement;
-    restan::Statement* lossStatement = new restan::StatementBody(ttpair.first, ttpair.second+1);
-    stHeap.push_back(lossStatement);
-    pi.setLossStatement(lossStatement);
+
+    if (ast.nodes[2]->nodes.size() > 0)
+    {
+      if (ast.nodes[2]->nodes[0]->name != "Type" && ast.nodes[2]->nodes[0]->name != "DeclarationLHS")
+      {
+        // transformed parameters with two statements need to gobble the model statement into their list of statements and then sneakily make the model statement actually a sub-statement of the statement body that it creates, and then set the pi's loss statement to be the statement body that it created. :)
+        ttpair.first[ttpair.second] = modelStatement;
+        modelStatement = new restan::StatementBody(ttpair.first, ttpair.second+1);
+        stHeap.push_back(modelStatement);
+      }
+      if (ast.nodes[2]->nodes.size() == 1)
+      {
+        // kind of similar as the previous comment but of course it has to be different because the library works differently if there is only ONE statement.
+        Statement** states = new Statement*[2];
+        stArrayHeap.push_back(states);
+        states[0] = decStatement;
+        states[1] = modelStatement;
+        modelStatement = new restan::StatementBody(states, 2);
+      }
+    }
+    pi.setLossStatement(modelStatement);
   };
   if (ast.name == "OptionalParameters")
   {
@@ -223,7 +254,7 @@ void* eval(const Ast& sv) {
     if (choice == 1)
     {
       // type f = blah
-      unsigned int* a = reinterpret_cast<unsigned int*>(eval(*ast.nodes[1]));
+      unsigned int* a = reinterpret_cast<unsigned int*>(eval(*ast.nodes[0]));
       restan::Statement* declareAssign = new restan::StatementAssign(*a, (Expression*)eval(*ast.nodes[2]));
       delete(a);
       stHeap.push_back(declareAssign);
@@ -242,10 +273,7 @@ void* eval(const Ast& sv) {
   };
   if (ast.name == "DeclarationLHS")
   {
-    std::string* varName = (std::string*)eval(*ast.nodes[sv.nodes.size() - 1]);
-    std::string s = trim(*varName);
-    delete(varName);
-    return new unsigned int (variableNames[s]);
+    return eval(*ast.nodes[ast.nodes.size()-1]);
   };
   if (ast.name == "Identifier")
   {
@@ -433,10 +461,10 @@ void* eval(const Ast& sv) {
     Expression* expr = (Expression*)eval(*ast.nodes[0]);
     for (int i=1; i<sv.nodes.size(); i+=2)
     {
-      if (ast.nodes[i]->token.compare("+") == 0) {
+      if (trim(ast.nodes[i]->token).compare("+") == 0) {
         expr = new ExpressionArithmetic(restan::PLUS, expr, (Expression*) eval(*ast.nodes[i+1]));
         exHeap.push_back(expr);
-      } else if (ast.nodes[i]->token.compare("-") == 0) {
+      } else if (trim(ast.nodes[i]->token).compare("-") == 0) {
         expr = new ExpressionArithmetic(restan::MINUS, expr, (Expression*) eval(*ast.nodes[i+1]));
         exHeap.push_back(expr);
       } else {
@@ -474,10 +502,10 @@ void* eval(const Ast& sv) {
     Expression* expr = (Expression*)eval(*ast.nodes[0]);
     for (int i=1; i<sv.nodes.size(); i+=2)
     {
-      if (ast.nodes[i]->token.compare("*") == 0) {
+      if (trim(ast.nodes[i]->token).compare("*") == 0) {
         expr = new ExpressionArithmetic(restan::TIMES, expr, (Expression*) eval(*ast.nodes[i+1]));
         exHeap.push_back(expr);
-      } else if (ast.nodes[i]->token.compare("/") == 0) {
+      } else if (trim(ast.nodes[i]->token).compare("/") == 0) {
         expr = new ExpressionArithmetic(restan::DIV, expr, (Expression*) eval(*ast.nodes[i+1]));
         exHeap.push_back(expr);
       }
@@ -584,9 +612,13 @@ void restan::parseStan(std::string stanCode)
       ast = AstOptimizer(true).optimize(ast);
       std::cout << ast_to_s(ast);
       eval(*ast);
+      std::cout<<"parsed\n";
+  }
+  else
+  {
+    throw ParseError("Failed to parse AST");
   }
 
-  std::cout<<"parsed\n";
 }
 
 // frees parsed expressions
