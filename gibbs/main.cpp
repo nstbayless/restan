@@ -6,7 +6,7 @@
 #include "pi/distributions.h"
 #include "pi/functions.h"
 
-#include "hmcmc/HMCMC.h"
+#include "hmcmc/GHMCMC.h"
 
 using namespace restan;
 using namespace adept;
@@ -121,7 +121,7 @@ void discreteTest()
 
 	int numSamples = 5000;
 	Vector samples[numSamples];
-	restan::HMCMC(getLoss, parameters(range(0, 0)), 0.1, 25, numSamples, samples);
+	restan::GHMCMC(getLoss, parameters(range(0, 0)), 0.1, 25, numSamples, samples, 1, 1);
 
 	double averageLambda = 0;
   	for (int i = 0; i < numSamples; i++) {
@@ -131,7 +131,7 @@ void discreteTest()
   	std::cout << averageLambda/numSamples << std::endl;
 
   	//Gibbs sample Z
-  	
+
 }
 
 

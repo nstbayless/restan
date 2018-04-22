@@ -15,6 +15,7 @@ ExpressionValue restan::ExpressionConstant::getValue()
 {
   return value;
 }
+
 restan::ExpressionConstant::ExpressionConstant(double c): value(1, 1) {
   value(0,0) = c;
 }
@@ -126,4 +127,20 @@ ExpressionValue restan::ExpressionFunction::getValue()
     expressionVals[i] = expressions[i]->getValue();
   }
   return sf(expressionVals, numExpressions);
+}
+
+
+//// ExpressionDereference ////
+restan::ExpressionDereference::ExpressionDereference(Expression* vecEXPR, Expression* indEXPR)
+: vecEXPR(vecEXPR),
+  indEXPR(indEXPR)
+{}
+
+ExpressionValue restan::ExpressionDereference::getValue()
+{
+  int index = indEXPR->getValue()(0,0).value();
+  double value = vecEXPR->getValue()(0,index).value();
+  ExpressionValue result(1,1);
+  result << value;
+  return result;
 }
