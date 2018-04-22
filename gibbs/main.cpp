@@ -39,15 +39,20 @@ int main(int argc, char** args)
 	ExpressionVariable targetEXPR(0);
 
 	ExpressionArithmetic targetSumEXPR(PLUS, &targetEXPR, &normalFuncEXPR);
-
-	StatementAssign sa(0, 1, &targetSumEXPR);
-
+	//std::cout << targetSumEXPR.getValue() << std::endl;
+	StatementAssign sa(0, &targetSumEXPR);
+	//std::cout << targetEXPR.getValue() << std::endl;
 	pi.setLossStatement(&sa);
 
-	Vector samples[1000];
-	restan::HMCMC(getLoss, parameters, 0.1, 25, 1000, samples);
 
-
-	std::cout << "Hello World" << std::endl;
+	int numSamples = 8000;
+	Vector samples[numSamples];
+	restan::HMCMC(getLoss, parameters, 0.1, 25, numSamples, samples);
+	double average = 0;
+  	for (int i = 0; i < numSamples; i++) {
+  		average += samples[i][0];
+		std::cout<<samples[i]<<std::endl;
+  	}
+  	std::cout << "Average: " << average/numSamples << std::endl;
   	return 0;
 }

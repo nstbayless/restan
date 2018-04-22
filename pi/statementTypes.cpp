@@ -43,7 +43,7 @@ void restan::StatementAssign::execute()
 	if (startIndex == -1) {
 		throw StartIndexInvalid();
 	}
-	std::cout << rhsVal << std::endl;
+	//std::cout << rhsVal << std::endl;
 	updateVariables(rhsVal, startIndex, endIndex);
 }
 //// StatementFunction ////
