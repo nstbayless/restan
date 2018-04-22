@@ -26,6 +26,10 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   vars(0) = 0;
 
   // TODO: throw error if parameters.size() is not equal to numParams
+  if (parameters.size() != numParams)
+  {
+     throw std::exception("params.size() is not numParams in Pi::getLoss:31");
+  }
 
   // update parameters
   params = parameters;
@@ -85,6 +89,10 @@ void restan::Pi::setVariables(const adept::Vector& variables)
 
 void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
+  if (index > numVariables)
+  {
+     throw std::exception("index exceeds numVariables in restan::updateVariables");
+  }
   // TODO: throw error if index exceeds numVariables
   unsigned int size = endIndex - startIndex;
   vars(range(startIndex, endIndex-1)) = vals(0, range(0, size-1));
@@ -106,23 +114,40 @@ void restan::Pi::setParams(const adept::Vector& parameters, unsigned int discret
 void restan::Pi::setParam(unsigned int index, double value)
 {
   // TODO: throw error if index exceeds numParams
+  if (index > numParams)
+  {
+     throw std::exception("index exceeds numParams in Pi::setParam");
+  }
+
   params(index) = value;
 }
 
 void restan::setParams(const adept::Vector& parameters, unsigned int discreteIndexStart, unsigned int* discreteDomainLengths)
 {
+  if (index > numParams)
+  {
+     throw std::exception("index exceeds numParams in Pi::setParams");
+  }
   // TODO: throw error if index exceeds numParams
   pi.setParams(parameters, discreteIndexStart, discreteDomainLengths);
 }
 
 void restan::setVariables(const adept::Vector& variables)
 {
+  if (index > numVariables)
+  {
+     throw std::exception("index exceeds numVariables in Pi::setVariables");
+  }
   // TODO: throw error if index exceeds numVariables
   pi.setVariables(variables);
 }
 
 void restan::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
+  if (index > numVariables)
+  {
+     throw std::exception("index exceeds numVariables in Pi::updateVariables");
+  }
   // TODO: throw error if index exceeds numVariables
   pi.updateVariables(vals, startIndex, endIndex);
 }
