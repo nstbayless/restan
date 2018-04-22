@@ -36,9 +36,9 @@ auto syntax = R"(
         Code <- '__BEGIN_STAN_CODE__' OptionalData OptionalParameters Model '__END_STAN_CODE__'
         OptionalData <-
         OptionalParameters <- 'parameters' '{' ( ParameterDeclaration ';' )* '}' /
-        OptionalTransformedParameters <- 'parameters' '{' ( DeclarationOrrestan::Statement ';' )* '}' /
-        Model <- 'model' restan::Statement
-        DeclarationOrrestan::Statement <- VariableDeclaration / restan::Statement
+        OptionalTransformedParameters <- 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
+        Model <- 'model' Statement
+        DeclarationOrStatement <- VariableDeclaration / Statement
 
         # Declarations
         VariableDeclaration <- DeclarationLHS / DeclarationLHS AssignOp Expression
@@ -49,11 +49,11 @@ auto syntax = R"(
         Bound <- BoundType '=' Constant
         BoundType <- 'lower' / 'upper'
 
-        # restan::Statements
-        restan::Statements <- restan::Statement ';' restan::Statements /
-        restan::Statement <- VariableExpression '~' Distribution '(' ArgList ')' /
+        # Statements
+        Statements <- Statement ';' Statements /
+        Statement <- VariableExpression '~' Distribution '(' ArgList ')' /
                     Variable AssignOp Expression / Variable RelOp Expression /
-                    FunctionExpression / '{' restan::Statements '}'
+                    FunctionExpression / '{' Statements '}'
         AssignOp <- '=' / '<-'
         RelOp <- '+=' / '-=' / '*=' / '/='
 
@@ -545,8 +545,15 @@ void restan::parseStan(std::string stanCode)
 
   p.enable_ast();
 
+  std::cout<< "about to parse\n";
+
   //p.enable_packrat_parsing();
-  p.parse(stanCode.c_str());
+  std::shared_ptr<peg::Ast> ast;
+  if (p.parse(stanCode.c_str(), ast)) {
+      ast = AstOptimizer(true).optimize(ast);
+      std::cout << ast_to_s(ast);
+      eval(*ast);
+  }
 
   std::cout<<"parsed\n";
 }
