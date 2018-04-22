@@ -10,7 +10,7 @@
 #include "parser/parser.h"
 #include "hmcmc/HMCMC.h"
 
-const int N_SAMPLES = 8000;
+const int N_SAMPLES = 70;
 
 int main(int argc, char** args)
 {
@@ -36,11 +36,12 @@ int main(int argc, char** args)
     std::cerr << e.what() << std::endl;
     return 0;
   }
-  adept::Vector q0 = {10};
+  adept::Vector q0 = {10, 15};
   adept::Vector samples[N_SAMPLES];
   restan::pi.setVariables(q0);
-  restan::HMCMC(restan::getLoss, q0, 0.1, 25, N_SAMPLES, samples);
-  for (int i = 0; i < 40; i++)
+  std::cout<<"Beginning HMCMC" << std::endl;
+  restan::HMCMC(restan::getLoss, q0, 0.1, 80, N_SAMPLES, samples);
+  for (int i = 0; i < 50; i++)
     std::cout<<samples[i]<<std::endl;
   restan::parseStanCleanup();
   return 0;
