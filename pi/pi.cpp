@@ -10,7 +10,7 @@ Pi restan::pi;
 
 
 
-void restan::Pi::executeStatement() 
+void restan::Pi::executeStatement()
 {
   statement->execute();
 }
@@ -18,7 +18,6 @@ void restan::Pi::executeStatement()
 
 GradValue restan::Pi::getLoss(const adept::Vector& parameters)
 {
-  
   //Reset target to 0
   vars(0) = 0;
 

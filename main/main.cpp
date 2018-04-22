@@ -15,13 +15,13 @@ int main(int argc, char** args)
   try
   {
     restan::parseStan(R"(
-    __BEGIN_STAN_CODE__
-    model
-    {
-      target += (3);
-    }
-    __END_STAN_CODE__
-  )");
+      __BEGIN_STAN_CODE__
+      model
+      {
+        target += (3);
+      }
+      __END_STAN_CODE__
+    )");
   }
   catch (restan::ParseError& e)
   {
@@ -31,6 +31,7 @@ int main(int argc, char** args)
   }
   adept::Vector q0 = {10};
   adept::Vector samples[N_SAMPLES];
+  restan::pi.setVariables(q0);
   restan::HMCMC(restan::getLoss, q0, 0.1, 25, N_SAMPLES, samples);
   ////for (int i = 0; i < 40; i++)
 ///std::cout<<samples[i]<<std::endl;

@@ -97,6 +97,7 @@ std::map<std::string, fnExpr> functionMap;
 std::map<std::string, void*> memoizedPointers;
 void* memoize(const Ast& sv, std::string production, void* proposed, bool dispose = false)
 {
+  return proposed;
   auto lookup = std::string(production) + " >~!~< token-(\"" + sv.token + std::string("\")");
   std::cout << lookup << std::endl << " (proposed pointer:" << proposed << ")" << std::endl;
   if (memoizedPointers.count(lookup) > 0)
@@ -274,13 +275,13 @@ void* eval(const Ast& sv) {
     std::cout << "statement -- " << sv.token << std::endl;
     int choice = 4;
     if (sv.nodes.size() > 1)
-      if (ast.nodes[1]->name == "Distribution")
+      if (ast.nodes[1]->name .compare("Distribution") == 0)
         choice = 0;
-    if (ast.nodes[0]->name == "AssignOp")
+    if (ast.nodes[1]->name .compare("AssignOp") == 0)
       choice = 1;
-    if (ast.nodes[0]->name == "RelOp")
+    if (ast.nodes[1]->name.compare("RelOp") == 0)
       choice = 2;
-    if (ast.nodes[0]->name == "FunctionExpression")
+    if (ast.nodes[0]->name .compare("FunctionExpression") == 0)
       choice = 3;
     switch (choice)
     {
