@@ -11,5 +11,5 @@ transformed parameters
 model
 {
   lambda ~ normal(0, 1);
-  beta ~ normal(5 * lambda, 1);
+  beta ~ normal(5*lambda, 1);
 }

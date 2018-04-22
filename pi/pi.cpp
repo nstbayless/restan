@@ -25,14 +25,16 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   //Reset target to 0
   vars(0) = 0;
 
-  //std::cout << "In getLoss: " << parameters << std::endl;
-  //std::cout << params << std::endl;
-  params(range(0, discreteIndexStart - 1)) = parameters(range(0, discreteIndexStart - 1));
-  //std::cout << params << std::endl;
-  //setParams(parameters, 1);
+  // update parameters
+  params = parameters;
+
+  // begin autodiff
   stack.new_recording();
-  // set independent variable
+
+  // calculate loss
   executeStatement();
+
+  // set independent variable
   vars(0).set_gradient(1.0);
   stack.compute_adjoint();
 
