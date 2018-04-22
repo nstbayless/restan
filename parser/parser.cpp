@@ -258,8 +258,17 @@ void restan::parseStan(std::string stanCode)
     if (ast.name == "Statement")
     {
       std::cout << "statement -- " << sv.token << std::endl;
-      
-      switch (sv.choice())
+      int choice = 4;
+      if (sv.nodes.size() > 1)
+        if (sv[1].name == "Distribution")
+          choice = 0;
+      if (sv[0].name == "AssignOp")
+        choice = 1;
+      if (sv[0].name == "RelOp")
+        choice = 2;
+      if (sv[0].name == "FunctionExpression")
+        choice = 3;
+      switch (choice)
       {
         case 0: // a ~ D
         {
