@@ -16,16 +16,12 @@ using namespace restan;
 using namespace std;
 using namespace adept;
 
-class SampleRejected : public std::exception
-{
-public:
-  SampleRejected() {}
-};
+
 
 void HMCMCUpdate(GradValue (*u)(const adept::Vector&), Vector q, const double epsilon, const unsigned int L, Vector* sampleOut);
 
-bool randomized = false;
 
+bool randomized = false;
 void restan::HMCMC(GradValue (*u)(const adept::Vector&), const Vector q0, double epsilon, unsigned int L, unsigned int samples, Vector* samplesOut)
 { 
   if (!randomized)

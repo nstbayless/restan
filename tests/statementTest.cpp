@@ -6,7 +6,7 @@ TEST_CASE( "Statement testing and StartIndexInvalid test" )
 	Vector variables = {10, 11, 12, 13};
 	setVariables(variables);
 	Vector parameters = {1,2,3,4,5,6};
-	setParams(parameters, 7);
+	setParams(parameters, 7, NULL);
 
 	ExpressionVariable varEXPR(0,4);
 	//std::cout << varEXPR.getValue() << std::endl;
@@ -33,7 +33,7 @@ TEST_CASE( "Statement testing and StartIndexInvalid test" )
 TEST_CASE ( "Expression Function and Statement Function testing " )
 {
 	Vector parameters = {1,2,3,4,5,6};
-	setParams(parameters, 7);
+	setParams(parameters, 7, NULL);
 
 	restan::Expression* EXPRArray[4];
 

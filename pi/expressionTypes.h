@@ -85,6 +85,16 @@ namespace restan
     unsigned int numExpressions;
   };
 
+  class ExpressionDereference : public Expression
+  {
+    public:
+      ExpressionDereference(Expression* vecEXPR, Expression* indEXPR);
+      virtual ExpressionValue getValue() override;
+    private:
+      Expression* vecEXPR;
+      Expression* indEXPR;
+  };
+
 }
 
 #endif

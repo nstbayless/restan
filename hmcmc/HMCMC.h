@@ -10,6 +10,14 @@
 
 namespace restan
 {
+
+  class SampleRejected : public std::exception
+  {
+  public:
+    SampleRejected() {}
+  };
+
+
   //! Hamiltonian Markov Monte Carlo
   // u: loss function returning value and gradient
   // q0: initial value
@@ -17,6 +25,7 @@ namespace restan
   // L: hyperparameter (leapfrog step count)
   // samples: number of samples
   // samplesOut: returns an array of samples
+  
   void HMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector q0, double epsilon, unsigned int L, unsigned int samples, adept::Vector* samplesOut);
 }
 
