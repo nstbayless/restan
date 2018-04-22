@@ -20,6 +20,10 @@ file (GLOB _TEST
     "tests/*.cpp"
 )
 
+file(GLOB _GIBBS
+	"gibbs/*.cpp"
+)
+
 add_executable(restan
   ${_SRC}
   ${_MAIN}
@@ -30,5 +34,11 @@ add_executable(stan-tests
   ${_TEST}
 )
 
+add_executable(gibbs-test
+  ${_SRC}
+  ${_GIBBS}
+)
+
 target_link_libraries(restan openblas adept)
 target_link_libraries(stan-tests openblas adept)
+target_link_libraries(gibbs-test openblas adept)
