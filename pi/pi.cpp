@@ -15,7 +15,7 @@ void restan::Pi::executeStatement()
   statement->execute();
 }
 
-const Statement* restan::Pi::getStatement()
+const restan::Statement* restan::Pi::getLossStatement()
 {
   return statement;
 }

@@ -29,7 +29,9 @@ int main(int argc, char** args)
   try
   {
     restan::parseStan(testProgram);
-    pi.getLossStatement()->print();
+    std::cout<<"\n";
+    restan::pi.getLossStatement()->print();
+    std::cout<<"\n";
   }
   catch (restan::ParseError& e)
   {

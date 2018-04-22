@@ -28,7 +28,7 @@ namespace restan
     GradValue getLoss(const adept::Vector& parameters);
     ExpressionValue getParams(unsigned int startIndex, unsigned int endIndex);
     void setLossStatement(Statement* s);
-    const Statement* getLossStatement();
+    const restan::Statement* getLossStatement();
     void executeStatement();
     void setVariables(const adept::Vector& variableso);
     void updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex);

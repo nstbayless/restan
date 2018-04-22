@@ -18,6 +18,7 @@ namespace restan
     ExpressionConstant(ExpressionValue c);
     ExpressionConstant(double c);
     virtual ExpressionValue getValue() override;
+    virtual void print(int depth) const override;
   private:
     ExpressionValue value;
   };
@@ -30,6 +31,7 @@ namespace restan
     // parameters from a half-open range of indices:
     ExpressionParameter(unsigned int parameterIndexStart, unsigned int parameterIndexEnd);
     virtual ExpressionValue getValue() override;
+    virtual void print(int depth) const override;
   private:
     unsigned int parameterIndexStart;
     unsigned int parameterIndexEnd;
@@ -42,6 +44,7 @@ namespace restan
     ExpressionVariable(unsigned int variableIndex);
     ExpressionVariable(unsigned int variableIndexStart, unsigned int variableIndexEnd);
     virtual ExpressionValue getValue() override;
+    virtual void print(int depth) const override;
   private:
     unsigned int variableIndexStart;
     unsigned int variableIndexEnd;
@@ -66,6 +69,7 @@ namespace restan
     Expression* lhs;
     Expression* rhs;
     virtual ExpressionValue getValue() override;
+    virtual void print(int depth) const override;
   };
 
   // function expression
@@ -74,6 +78,7 @@ namespace restan
   public:
     ExpressionFunction(InterpFunc, Expression** expressions, unsigned int numExpressions);
     virtual ExpressionValue getValue() override;
+    virtual void print(int depth) const override;
   private:
     InterpFunc sf;
     Expression** expressions;

@@ -64,11 +64,11 @@ void restan::StatementAssign::print(int depth) const
 {
 	for (int i = 0; i < depth; i++)
 		std::cout << "  ";
-	std::cout << "+ StatementAssign [" << startIndex;
+	std::cout << "+ StatementAssign v[" << startIndex;
 	if (endIndex != startIndex + 1)
 		std::cout << ", "<< endIndex;
 	std::cout << "] <-\n";
-	expression->print(depth);
+	expression->print(depth + 1);
 }
 
 //// StatementFunction ////
@@ -87,5 +87,5 @@ void restan::StatementFunction::print(int depth) const
 	for (int i = 0; i < depth; i++)
 		std::cout << "  ";
 	std::cout << "+ StatementFunction:\n";
-  print(funcExpr);
+  std::cout << funcEXPR;
 }

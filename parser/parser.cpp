@@ -198,7 +198,7 @@ void* eval(const Ast& sv) {
         modelStatement = new restan::StatementBody(ttpair.first, ttpair.second+1);
         stHeap.push_back(modelStatement);
       }
-      if (ast.nodes[2]->nodes.size() == 1)
+      else
       {
         // kind of similar as the previous comment but of course it has to be different because the library works differently if there is only ONE statement.
         Statement** states = new Statement*[2];
