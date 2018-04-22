@@ -56,6 +56,11 @@ void lambdaFromNormalTest()
   	std::cout << "Average: " << average/numSamples << std::endl;
 }
 
+/*
+	lambda ~ N(0,1)
+	k = 2Z + 3
+	k ~ Poisson(lamda)
+*/
 void discreteTest()
 {
 	std::cout << "Starting discreteTest" << std::endl;
@@ -125,7 +130,7 @@ void discreteTest()
 	pi.setLossStatement(&piStatement);
 
 
-	int numSamples = 5000;
+	int numSamples = 10;
 	Vector samples[numSamples];
 
 	restan::GHMCMC(getLoss, parameters(range(0, 0)), 0.1, 25, numSamples, samples, 1, 1);

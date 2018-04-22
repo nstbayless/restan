@@ -36,6 +36,7 @@ namespace restan
     //TODO: Used for testing purposes
     void setParams(const adept::Vector& parameters, unsigned int discreteIndStart, unsigned int* discreteDomainLengths);
     void setParam(unsigned int index, double value);
+    adept::aVector getParams();
     unsigned int numParams();
     unsigned int discreteIndexStart;
     unsigned int* discreteDomainLengths;

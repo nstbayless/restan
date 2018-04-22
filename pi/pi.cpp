@@ -45,6 +45,10 @@ ExpressionValue restan::Pi::getParams(unsigned int startIndex, unsigned int endI
   mParams << params(range(startIndex, endIndex -1));
   return mParams;
 }
+adept::aVector restan::Pi::getParams()
+{
+  return params;
+}
 
 GradValue restan::getLoss(const adept::Vector& q)
 {
