@@ -95,11 +95,11 @@ ExpressionValue restan::ExpressionArithmetic::getValue()
       //Dimensions must be 1x4 * 4*1
       if (lhs_col == rhs_row)
         arithResult = adept::matmul(lhsVal, rhsVal);
-      else 
-        std::cout<< "Dot product dimensions must be 1xn * n*1" << std::endl;    
+      else
+        std::cout<< "Dot product dimensions must be 1xn * n*1" << std::endl;
       break;
     case DIV:
-      if (rhs_row == rhs_col) 
+      if (rhs_row == rhs_col)
       {
         arithResult = lhsVal / rhsVal(0,0);
         break;
@@ -116,7 +116,7 @@ ExpressionValue restan::ExpressionArithmetic::getValue()
 restan::ExpressionFunction::ExpressionFunction(InterpFunc sf, Expression** expressions, unsigned int numExpressions)
 : sf(sf),
   expressions(expressions),
-  numExpressions(numExpressions) 
+  numExpressions(numExpressions)
 {}
 
 ExpressionValue restan::ExpressionFunction::getValue()

@@ -10,7 +10,7 @@
 #include "expression.h"
 #include "statement.h"
 
- 
+
 
 namespace restan
 {
@@ -23,23 +23,20 @@ namespace restan
   
   class Pi
   {
-  public:  
+  public:
     // loss value and gradient of given state
     GradValue getLoss(const adept::Vector& parameters);
     ExpressionValue getParams(unsigned int startIndex, unsigned int endIndex);
-    void  setStatement(Statement* s);
-    void executeStatement();
-    void setVariables(const adept::Vector& parameters);
+    void setLossStatement(Statement* s);
+    void setVariables(const adept::Vector& variableso);
     void updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex);
     ExpressionValue getVariables(unsigned int startIndex, unsigned int endIndex);
 
     //TODO: Used for testing purposes
     void setParams(const adept::Vector& parameters, unsigned int discreteIndStart);
     unsigned int discreteIndexStart;
+
   private:
-    //// these variables are fixed from evaluation to evaluation (getLoss) ////
-    Expression* lossExpression;
-  
     //// these variables change from evaluation to evaluation (getLoss) ////
 
     // adept execution trace
@@ -53,7 +50,7 @@ namespace restan
     // statement list
     Statement* statement;
   };
-  
+
   extern Pi pi;
 
   GradValue getLoss(const adept::Vector& q);

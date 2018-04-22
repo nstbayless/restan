@@ -66,7 +66,7 @@ void HMCMCUpdate(GradValue (*u)(const adept::Vector&), Vector q, const double ep
     p[i] = stdnormal(generator);
   }
   
-  // leapfrog (TODO: confirm this? seems to differ only on first and last step)
+  // leapfrog (confirm this? seems to differ only on first and last step) - CONFIRMED, telescopes at t+eps!
   GradValue uqStart(u(q));
   p -= (epsilon / 2) * uqStart.second;
   

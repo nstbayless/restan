@@ -21,7 +21,7 @@ namespace restan
   private:
     ExpressionValue value;
   };
-  
+
   // parameter lookup (directly from q)
   class ExpressionParameter : public Expression
   {
@@ -56,7 +56,7 @@ namespace restan
     DOTPRODUCT,
     DIV
   };
-  
+
   // arithmetic operation
   class ExpressionArithmetic : public Expression
   {
@@ -82,4 +82,4 @@ namespace restan
 
 }
 
-#endif 
+#endif
