@@ -7,9 +7,6 @@ using namespace adept;
 
 Pi restan::pi;
 
-
-
-
 void restan::Pi::executeStatement()
 {
   statement->execute();
@@ -96,11 +93,6 @@ void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int start
   // TODO: throw error if index exceeds numVariables
   unsigned int size = endIndex - startIndex;
   vars(range(startIndex, endIndex-1)) = vals(0, range(0, size-1));
-}
-
-unsigned int restan::Pi::numParams()
-{
-  return params.size();
 }
 
 //Setter only used for testing purposes

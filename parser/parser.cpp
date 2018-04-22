@@ -209,6 +209,9 @@ void* eval(const Ast& sv) {
       }
     }
     pi.setLossStatement(modelStatement);
+    pi.numParams = pCount;
+    pi.numVariables = vCount;
+    pi.discreteIndexStart = pCount;
   };
   if (ast.name == "OptionalParameters")
   {

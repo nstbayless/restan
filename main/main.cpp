@@ -39,8 +39,12 @@ int main(int argc, char** args)
     std::cerr << e.what() << std::endl;
     return 0;
   }
-  adept::Vector q0 = {10, 15};
-  adept::Vector v0 = {10, 15, 23};
+  adept::Vector q0(restan::pi.numParams);
+  for (int i = 0; i < restan::pi.numParams; i++)
+    q0(i) = 0;
+  adept::Vector v0(restan::pi.numVariables);
+  for (int i = 0; i < restan::pi.numVariables; i++)
+    v0(i) = 0;
   adept::Vector samples[N_SAMPLES];
   restan::pi.setVariables(v0);
   restan::pi.discreteIndexStart = 2;
