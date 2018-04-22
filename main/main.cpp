@@ -1,6 +1,8 @@
 // example
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include <adept.h>
 #include <adept_arrays.h>
@@ -12,26 +14,21 @@ const int N_SAMPLES = 70;
 
 int main(int argc, char** args)
 {
+  std::string filename = "test.stan";
+  //std::string testProgram;
+  std::ifstream input(filename);
+  std::stringstream sstr;
+
+  //input.open(filename, std::ifstream::in);
+
+  std::string testProgram( (std::istreambuf_iterator<char>(input) ),
+                       (std::istreambuf_iterator<char>()    ) );
+
+  std::cout << testProgram << std::endl;
+
   try
   {
-    restan::parseStan(R"(
-      parameters
-      {
-        real lambda;
-        real beta;
-      }
-      transformed parameters
-      {
-        real zeta;
-        real alpha;
-      }
-      model
-      {
-        alpha <- beta;
-        lambda ~ normal(5, 1);
-        beta ~ normal(lambda , 1);
-      }
-    )");
+    restan::parseStan(testProgram);
   }
   catch (restan::ParseError& e)
   {
