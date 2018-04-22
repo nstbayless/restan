@@ -15,7 +15,6 @@ int main(int argc, char** args)
   try
   {
     restan::parseStan(R"(
-      __BEGIN_STAN_CODE__
       parameters
       {
         real lambda;
@@ -24,14 +23,14 @@ int main(int argc, char** args)
       transformed parameters
       {
         real zeta;
+        real alpha;
       }
       model
       {
-        zeta <- beta;
+        alpha <- beta;
         lambda ~ normal(5, 1);
-        zeta ~ normal(5 * lambda , 1);
+        beta ~ normal(lambda , 1);
       }
-      __END_STAN_CODE__
     )");
   }
   catch (restan::ParseError& e)

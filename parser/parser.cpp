@@ -34,7 +34,7 @@ std::string trim(std::string s)
 }
 
 auto syntax = R"(
-        Code <- '__BEGIN_STAN_CODE__' OptionalData OptionalParameters OptionalTransformedParameters Model '__END_STAN_CODE__'
+        Code <- OptionalData OptionalParameters OptionalTransformedParameters Model
         OptionalData <-
         OptionalParameters <- 'parameters' '{' ( ParameterDeclaration ';' )* '}' /
         OptionalTransformedParameters <- 'transformed' 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
@@ -225,6 +225,8 @@ void* eval(const Ast& sv) {
     for (int i = 0; i < sv.nodes.size(); i ++)
     {
       restan::Statement* s = (restan::Statement*)eval(*ast.nodes[i]);
+      if (ast.nodes[i]->name == "DeclarationLHS")
+        continue;
       if (s)
       {
         *slo = s;

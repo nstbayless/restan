@@ -13,6 +13,7 @@ namespace restan
   {
   public:
     virtual ExpressionValue getValue() = 0;
+    virtual std::string printTree(int depth);
   };
 }
 
