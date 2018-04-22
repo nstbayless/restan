@@ -23,12 +23,7 @@ int SampleDiscrete(double* unnormalizedProb, unsigned int size, double Z)
 
 void restan::GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector q0, double epsilon, unsigned int L, unsigned int samples, adept::Vector* samplesOut, unsigned int epoch, unsigned int L2)
 {
-<<<<<<< HEAD
-	while (samples > 0) 
-	{
-		unsigned int numParams = pi.numParams();
-=======
-	samples = 1;
+
 	while (samples > 0)
 	{
 		//Run one sample of HMCMC
@@ -36,7 +31,6 @@ void restan::GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector 
 
 		//Update one discrete parameter
 		unsigned int numParams = pi.numParams;
->>>>>>> bb0bc1d0161afefb57cc93e2aed1ae78e5653af4
 		unsigned int discreteIndexStart = pi.discreteIndexStart;
 		unsigned int numDiscrete = numParams - discreteIndexStart;
 		unsigned int randDiscreteIndex = (rand() % numDiscrete);

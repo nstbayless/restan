@@ -90,6 +90,7 @@ namespace restan
     public:
       ExpressionDereference(Expression* vecEXPR, Expression* indEXPR);
       virtual ExpressionValue getValue() override;
+      virtual void print(int depth) const override;
     private:
       Expression* vecEXPR;
       Expression* indEXPR;

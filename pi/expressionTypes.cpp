@@ -189,3 +189,11 @@ ExpressionValue restan::ExpressionDereference::getValue()
   result << value;
   return result;
 }
+void restan::ExpressionDereference::print(int depth) const {
+  int space = 2*depth;
+  while(space--)
+    std::cout << " ";
+  std::cout << "- ExpressionDereference " << std::endl;
+  vecEXPR->print(depth+1);
+  indEXPR->print(depth+1);
+}
