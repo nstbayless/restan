@@ -33,7 +33,7 @@ std::string trim(std::string s)
 }
 
 auto syntax = R"(
-        Code <- '__BEGIN_STAN_CODE__' OptionalData OptionalParameters Model '__END_STAN_CODE__'
+        Code <- '__BEGIN_STAN_CODE__' OptionalData OptionalParameters OptionalTransformedParameters Model '__END_STAN_CODE__'
         OptionalData <-
         OptionalParameters <- 'parameters' '{' ( ParameterDeclaration ';' )* '}' /
         OptionalTransformedParameters <- 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
@@ -86,6 +86,8 @@ std::map<std::string, unsigned int> parameterNames;
 std::map<std::string, unsigned int> variableNames;
 int pCount = 0;
 int vCount = 0;
+
+int declaring = false;
 
 // fixed lookups
 std::map<std::string, fnExpr> distributionMap;
@@ -158,22 +160,30 @@ void fillNames(std::string& stanCode, std::map<std::string, unsigned int>& param
 }
 
 void* eval(const Ast& sv) {
+  std::cout<<sv.name<<std::endl;
   auto& ast = sv;
   if (ast.name == "Code")
   {
     std::cout<<"took root production\n";
-    restan::Statement* modelStatement = (restan::Statement*)eval(*ast.nodes[2]);
-    auto* _tppair = (std::pair<restan::Statement**, int>*)eval(*(ast.nodes[1]));
+    declaring = 1;
+    eval(*ast.nodes[1]); // parameters
+    declaring = 2;
+    auto* _tppair = (std::pair<restan::Statement**, int>*)eval(*(ast.nodes[2])); // transformed parameters
     std::pair<restan::Statement**, int> ttpair(*_tppair);
     delete(_tppair);
+    declaring = 0;
+    restan::Statement* modelStatement = (restan::Statement*)eval(*ast.nodes[3]); // model
     ttpair.first[ttpair.second] = modelStatement;
     restan::Statement* lossStatement = new restan::StatementBody(ttpair.first, ttpair.second+1);
     stHeap.push_back(lossStatement);
     pi.setLossStatement(lossStatement);
   };
-  std::cout<<"parsed syntax\n";
   if (ast.name == "OptionalParameters")
   {
+    for (int i = 0; i < sv.nodes.size(); i ++)
+    {
+      eval(*ast.nodes[i]);
+    }
   };
   if (ast.name == "OptionalTransformedParameters")
   {
@@ -196,19 +206,19 @@ void* eval(const Ast& sv) {
     restan::Statement* modelStatement = (restan::Statement*)eval(*ast.nodes[2]);
     return memoize(sv, "Model", (void*)modelStatement);
   };
-  if (ast.name == "DeclarationOrrestan::Statement")
+  if (ast.name == "DeclarationOrStatement")
   {
     return (Expression*)eval(*ast.nodes[0]);
   };
   if (ast.name == "VariableDeclaration")
   {
-  int choice = 2;
-  if (ast.nodes.size() > 1) {
-    choice = 1;
-  } else if (ast.nodes.size() == 1) {
-    choice = 0;
-  }
+    int choice = 2;
 
+    if (ast.nodes.size() > 1) {
+      choice = 1;
+    } else if (ast.nodes.size() == 1) {
+      choice = 0;
+    }
     if (choice == 1)
     {
       // type f = blah
@@ -235,7 +245,7 @@ void* eval(const Ast& sv) {
   {
     return memoize(sv, "Ident", new std::string(trim(sv.token)), true);
   };
-  if (ast.name == "restan::Statements")
+  if (ast.name == "Statements")
   {
     std::cout<< " statements -- " << sv.token << std::endl;
     switch (sv.nodes.size() > 0)
@@ -259,7 +269,7 @@ void* eval(const Ast& sv) {
         return static_cast<restan::Statement*>(nullptr);
     }
   };
-  if (ast.name == "restan::Statement")
+  if (ast.name == "Statement")
   {
     std::cout << "statement -- " << sv.token << std::endl;
     int choice = 4;
@@ -488,7 +498,14 @@ void* eval(const Ast& sv) {
   {
     std::string varName = trim(sv.token);
     if (!parameterNames.count(varName))
-      return new unsigned int (-1);
+    {
+      if (declaring == 1)
+      {
+        parameterNames[varName] = pCount++;
+        return eval(sv);
+      }
+      else throw ParseError("Cannot define parameter " + varName);
+    }
     else
       return new unsigned int (parameterNames[varName]);
   };
@@ -496,8 +513,15 @@ void* eval(const Ast& sv) {
   if (ast.name == "Variable")
   {
     std::string varName = trim(sv.token);
-    if (!variableNames.count(varName))
-    return new unsigned int (-1);
+  if (!variableNames.count(varName))
+  {
+    if (declaring == 2)
+    {
+      variableNames[varName] = vCount++;
+      return eval(sv);
+    }
+    else throw ParseError("Cannot define parameter " + varName);
+  }
   else
     return new unsigned int (variableNames[varName]);
   };
@@ -538,7 +562,6 @@ void restan::parseStan(std::string stanCode)
   vCount = 0;
   pCount = 0;
   variableNames["target"] = vCount++;
-  fillNames(stanCode, parameterNames, pCount, variableNames, vCount);
 
 
   parser p(syntax);
