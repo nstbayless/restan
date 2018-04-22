@@ -15,7 +15,12 @@
 using namespace peg;
 using namespace restan;
 
-class Statement;
+typedef  adept::aMatrix (*fnExpr) ( adept::aMatrix *, unsigned int);
+
+namespace restan
+{
+  class Statement;
+}
 class ExpressionValue;
 
 std::string trim(std::string s)
@@ -31,9 +36,9 @@ auto syntax = R"(
         Code <- '__BEGIN_STAN_CODE__' OptionalData OptionalParameters Model '__END_STAN_CODE__'
         OptionalData <-
         OptionalParameters <- 'parameters' '{' ( ParameterDeclaration ';' )* '}' /
-        OptionalTransformedParameters <- 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
-        Model <- 'model' Statement
-        DeclarationOrStatement <- VariableDeclaration / Statement
+        OptionalTransformedParameters <- 'parameters' '{' ( DeclarationOrrestan::Statement ';' )* '}' /
+        Model <- 'model' restan::Statement
+        DeclarationOrrestan::Statement <- VariableDeclaration / restan::Statement
 
         # Declarations
         VariableDeclaration <- DeclarationLHS / DeclarationLHS AssignOp Expression
@@ -44,11 +49,11 @@ auto syntax = R"(
         Bound <- BoundType '=' Constant
         BoundType <- 'lower' / 'upper'
 
-        # Statements
-        Statements <- Statement ';' Statements /
-        Statement <- VariableExpression '~' Distribution '(' ArgList ')' /
+        # restan::Statements
+        restan::Statements <- restan::Statement ';' restan::Statements /
+        restan::Statement <- VariableExpression '~' Distribution '(' ArgList ')' /
                     Variable AssignOp Expression / Variable RelOp Expression /
-                    FunctionExpression / '{' Statements '}'
+                    FunctionExpression / '{' restan::Statements '}'
         AssignOp <- '=' / '<-'
         RelOp <- '+=' / '-=' / '*=' / '/='
 
@@ -76,7 +81,38 @@ std::vector<restan::Expression**> exArrayHeap;
 std::vector<restan::Statement*> stHeap;
 std::vector<restan::Statement**> stArrayHeap;
 
-typedef  adept::aMatrix (*fnExpr) ( adept::aMatrix *, unsigned int);
+// variable / parameter names
+std::map<std::string, unsigned int> parameterNames;
+std::map<std::string, unsigned int> variableNames;
+int pCount = 0;
+int vCount = 0;
+
+// fixed lookups
+std::map<std::string, fnExpr> distributionMap;
+std::map<std::string, fnExpr> functionMap;
+
+// memoize
+std::map<std::string, void*> memoizedPointers;
+void* memoize(const Ast& sv, std::string production, void* proposed, bool dispose = false)
+{
+  auto lookup = std::string(production) + " >~!~< token-(\"" + sv.token + std::string("\")");
+  std::cout << lookup << std::endl << " (proposed pointer:" << proposed << ")" << std::endl;
+  if (memoizedPointers.count(lookup) > 0)
+  {
+    // use pre-existing
+    if (dispose)
+      delete (char*)proposed;
+    std::cout << "  found in cache!" << std::endl;
+    return memoizedPointers[lookup];
+  }
+  else
+  {
+    // memoize and return
+    memoizedPointers[lookup] = proposed;
+    std::cout << "  memoized for future use." << std::endl;
+    return proposed;
+  }
+};
 
 void fillNames(std::string& stanCode, std::map<std::string, unsigned int>& parameterNames, int& pcount, std::map<std::string, unsigned int>& variableNames, int& vcount)
 {
@@ -126,12 +162,12 @@ void* eval(const Ast& sv) {
   if (ast.name == "Code")
   {
     std::cout<<"took root production\n";
-    Statement* modelStatement = (Statement*)eval(*ast.nodes[2]);
-    auto* _tppair = (std::pair<Statement**, int>*)eval(*(ast.nodes[1]));
-    std::pair<Statement**, int> ttpair(*_tppair);
+    restan::Statement* modelStatement = (restan::Statement*)eval(*ast.nodes[2]);
+    auto* _tppair = (std::pair<restan::Statement**, int>*)eval(*(ast.nodes[1]));
+    std::pair<restan::Statement**, int> ttpair(*_tppair);
     delete(_tppair);
     ttpair.first[ttpair.second] = modelStatement;
-    Statement* lossStatement = new StatementBody(ttpair.first, ttpair.second+1);
+    restan::Statement* lossStatement = new restan::StatementBody(ttpair.first, ttpair.second+1);
     stHeap.push_back(lossStatement);
     pi.setLossStatement(lossStatement);
   };
@@ -141,26 +177,26 @@ void* eval(const Ast& sv) {
   };
   if (ast.name == "OptionalTransformedParameters")
   {
-    Statement** sl = new Statement*[sv.nodes.size()+1];
-    Statement** slo = sl;
+    restan::Statement** sl = new restan::Statement*[sv.nodes.size()+1];
+    restan::Statement** slo = sl;
     stArrayHeap.push_back(sl);
     for (int i = 0; i < sv.nodes.size(); i ++)
     {
-      Statement* s = (Statement*)eval(*ast.nodes[i]);
+      restan::Statement* s = (restan::Statement*)eval(*ast.nodes[i]);
       if (s)
       {
         *slo = s;
         slo ++;
       }
     }
-    return new std::pair<Statement**, int>(sl, slo - sl);
+    return new std::pair<restan::Statement**, int>(sl, slo - sl);
   };
   if (ast.name == "Model")
   {
-    Statement* modelStatement = (Statement*)eval(*ast.nodes[2]);
+    restan::Statement* modelStatement = (restan::Statement*)eval(*ast.nodes[2]);
     return memoize(sv, "Model", (void*)modelStatement);
   };
-  if (ast.name == "DeclarationOrStatement")
+  if (ast.name == "DeclarationOrrestan::Statement")
   {
     return (Expression*)eval(*ast.nodes[0]);
   };
@@ -177,15 +213,15 @@ void* eval(const Ast& sv) {
     {
       // type f = blah
       unsigned int* a = reinterpret_cast<unsigned int*>(eval(*ast.nodes[0]));
-      Statement* declareAssign = new StatementAssign(*a, (Expression*)eval(*ast.nodes[2]));
+      restan::Statement* declareAssign = new restan::StatementAssign(*a, (Expression*)eval(*ast.nodes[2]));
       delete(a);
       stHeap.push_back(declareAssign);
-      return (Statement*) memoize(sv, "VD", declareAssign, true);
+      return (restan::Statement*) memoize(sv, "VD", declareAssign, true);
     }
     else
     {
-      (Statement*)eval(*ast.nodes[0]); // trigger
-      return static_cast<Statement*>(nullptr);
+      (restan::Statement*)eval(*ast.nodes[0]); // trigger
+      return static_cast<restan::Statement*>(nullptr);
     }
   };
   if (ast.name == "DeclarationLHS")
@@ -199,20 +235,20 @@ void* eval(const Ast& sv) {
   {
     return memoize(sv, "Ident", new std::string(trim(sv.token)), true);
   };
-  if (ast.name == "Statements")
+  if (ast.name == "restan::Statements")
   {
     std::cout<< " statements -- " << sv.token << std::endl;
     switch (sv.nodes.size() > 0)
     {
       case true:
       {
-        Statement* second = (Statement*)eval(*ast.nodes[1]);
-        Statement* first = (Statement*)eval(*ast.nodes[0]);
+        restan::Statement* second = (restan::Statement*)eval(*ast.nodes[1]);
+        restan::Statement* first = (restan::Statement*)eval(*ast.nodes[0]);
         if (second)
         {
-          Statement** sl = new Statement*[2] {first, second};
+          restan::Statement** sl = new restan::Statement*[2] {first, second};
           stArrayHeap.push_back(sl);
-          Statement* sb = new StatementBody(sl, 2);
+          restan::Statement* sb = new restan::StatementBody(sl, 2);
           stHeap.push_back(sb);
           return memoize(sv, "Ss1", sb, true);
         }
@@ -220,10 +256,10 @@ void* eval(const Ast& sv) {
           return memoize(sv, "Ss2", first, false);
       }
       case false:
-        return static_cast<Statement*>(nullptr);
+        return static_cast<restan::Statement*>(nullptr);
     }
   };
-  if (ast.name == "Statement")
+  if (ast.name == "restan::Statement")
   {
     std::cout << "statement -- " << sv.token << std::endl;
     int choice = 4;
@@ -260,7 +296,7 @@ void* eval(const Ast& sv) {
         exHeap.push_back(targetValue);
         Expression* sum = new ExpressionArithmetic(restan::PLUS, targetValue, fn);
         exHeap.push_back(sum);
-        Statement* s = new StatementAssign(variableNames["target"], sum);
+        restan::Statement* s = new restan::StatementAssign(variableNames["target"], sum);
         stHeap.push_back(s);
         return memoize(sv, "S~", s, true);
       }
@@ -299,22 +335,22 @@ void* eval(const Ast& sv) {
           exHeap.push_back(varexpr);
           rhs = new ExpressionArithmetic(op, varexpr, rhs);
         }
-        Statement* s = new StatementAssign(variableIndex, rhs);
+        restan::Statement* s = new restan::StatementAssign(variableIndex, rhs);
         stHeap.push_back(s);
         return memoize(sv, "Sasgn", s, true);
       }
       case 3: // function
       {
-        StatementFunction* fn = new StatementFunction((ExpressionFunction*)eval(*ast.nodes[0]));
+        restan::StatementFunction* fn = new restan::StatementFunction((ExpressionFunction*)eval(*ast.nodes[0]));
         stHeap.push_back(fn);
         return memoize(sv, "Sfn", fn, true);
       }
       case 4: // block
       {
-        Statement** list = new Statement*[sv.nodes.size()];
+        restan::Statement** list = new restan::Statement*[sv.nodes.size()];
         for (int i = 0; i < sv.nodes.size(); i++)
-          list[i] = (Statement*)eval(*ast.nodes[i]);
-        Statement* fn = new StatementBody(list, sv.nodes.size());
+          list[i] = (restan::Statement*)eval(*ast.nodes[i]);
+        restan::Statement* fn = new restan::StatementBody(list, sv.nodes.size());
         stHeap.push_back(fn);
         return memoize(sv, "S{}", fn, true);
       }
@@ -499,42 +535,10 @@ void* eval(const Ast& sv) {
 // parses stan code string
 void restan::parseStan(std::string stanCode)
 {
-  // variable / parameter names
-  std::map<std::string, unsigned int> parameterNames;
-  std::map<std::string, unsigned int> variableNames;
-  int pCount = 0;
-  int vCount = 0;
-
+  vCount = 0;
+  pCount = 0;
   variableNames["target"] = vCount++;
   fillNames(stanCode, parameterNames, pCount, variableNames, vCount);
-
-  // fixed lookups
-  std::map<std::string, fnExpr> distributionMap;
-  std::map<std::string, fnExpr> functionMap;
-
-  // memoize
-  std::map<std::string, void*> memoizedPointers;
-  auto memoize = [&](const Ast& sv, std::string production, void* proposed, bool dispose = false) -> void*
-  {
-    auto lookup = std::string(production) + " >~!~< token-(\"" + sv.token + std::string("\")");
-    std::cout << lookup << std::endl << " (proposed pointer:" << proposed << ")" << std::endl;
-    if (memoizedPointers.count(lookup) > 0)
-    {
-      // use pre-existing
-      if (dispose)
-        delete (char*)proposed;
-      std::cout << "  found in cache!" << std::endl;
-      return memoizedPointers[lookup];
-    }
-    else
-    {
-      // memoize and return
-      memoizedPointers[lookup] = proposed;
-      std::cout << "  memoized for future use." << std::endl;
-      return proposed;
-    }
-  };
-
 
 
   parser p(syntax);
@@ -554,8 +558,8 @@ void restan::parseStanCleanup()
     delete(expr);
   for (Expression** expra : exArrayHeap)
     delete(expra);
-  for (Statement* st : stHeap)
+  for (restan::Statement* st : stHeap)
     delete(st);
-  for (Statement** sta : stArrayHeap)
+  for (restan::Statement** sta : stArrayHeap)
     delete [] sta;
 }
