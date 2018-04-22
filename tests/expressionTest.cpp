@@ -33,7 +33,7 @@ TEST_CASE( "Testing parameter expressions" )
 	ExpressionValue mv = myLongParam.getValue();
 	ExpressionValue testEV(1, 2); testEV << testV(range(1,2));
 
-	//std::cout << testEV << std::endl;
+	std::cout << testEV << std::endl;
 	//std::cout << mv << std::endl;
 	REQUIRE( compareEV(mv, testEV) );
 }
@@ -108,4 +108,19 @@ TEST_CASE ("StartIndexInvalid error")
 	ExpressionParameter singleParam(-1);
 
 	CHECK_THROWS(singleParam.getValue());
+}
+
+TEST_CASE ("ExpressionDereference testing")
+{
+	//Create testVector
+	//Vector testV = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+	//setParams(testV, 7, NULL);
+
+	ExpressionParameter vectorEXPR(1,4); //2, 3, 4
+	ExpressionConstant indexEXPR(1);
+
+	ExpressionDereference derefEXPR(&vectorEXPR, &indexEXPR);
+	std::cout << derefEXPR.getValue() << std::endl;
+
+	REQUIRE( derefEXPR.getValue()(0,0).value() == 3);
 }
