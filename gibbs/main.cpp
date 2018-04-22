@@ -57,7 +57,7 @@ void lambdaFromNormalTest()
 }
 
 /*
-	lambda ~ N(0,1)
+	loglambda ~ N(0,1)
 	k = 2Z + 3
 	k ~ Poisson(lamda)
 */
@@ -65,12 +65,12 @@ void discreteTest()
 {
 	std::cout << "Starting discreteTest" << std::endl;
 	double logLambda = 0.5;
-	double Z = 3;
+	double Z = 0;
 	double k = 2*Z + 3;
 	double target = 0;
 	double Z2 = 5;
 	Vector parameters = {logLambda, Z};
-	unsigned int DiscreteDomains[1] = {5};
+	unsigned int DiscreteDomains[1] = {100};
 	setParams(parameters, 1, DiscreteDomains);
 
 
@@ -104,7 +104,8 @@ void discreteTest()
 	std::cout << "Creating kStatement" << std::endl;
 	ExpressionArithmetic twoZEXPR(TIMES, &twoEXPR, &ZEXPR);
 	ExpressionArithmetic twoZPlusThreeEXPR(PLUS, &threeEXPR, &twoZEXPR);
-	StatementAssign kStatement(1, &twoZPlusThreeEXPR);
+	//StatementAssign kStatement(1, &twoZPlusThreeEXPR);
+	StatementAssign kStatement(1, &ZEXPR);
 
 	//k ~ Poisson(exp(log lambda))
 	std::cout << "Creating poissonStatement" << std::endl;
@@ -132,18 +133,22 @@ void discreteTest()
 	pi.setLossStatement(&piStatement);
 
 
-	int numSamples = 10;
+	int numSamples = 5000;
 	Vector samples[numSamples];
 
-	restan::HMCMC(getLoss, parameters, 0.1, 25, numSamples, samples);
+	restan::GHMCMC(getLoss, parameters, 0.1, 25, numSamples, samples, 1, 1);
 
+	std::cout << "GMCMC finished" << std::endl;
 	double averageLambda = 0;
+	int averageDiscrete = 0;
   	for (int i = 0; i < numSamples; i++) {
   		averageLambda += samples[i](0);
-		//std::cout<<samples[i]<<std::endl;
+  		averageDiscrete += samples[i](1);
+		std::cout<<samples[i]<<std::endl;
+
   	}
   	std::cout << averageLambda/numSamples << std::endl;
-
+	std::cout << averageDiscrete/numSamples << std::endl;
   	//Gibbs sample Z
 
 }
