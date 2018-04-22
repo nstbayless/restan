@@ -19,10 +19,9 @@ void restan::Pi::executeStatement()
 GradValue restan::Pi::getLoss(const adept::Vector& parameters)
 {
   
+  //Reset target to 0
+  vars(0) = 0;
 
-  adept::Vector v(1);
-  v = 0;
-  setVariables(v);
   setParams(parameters, 1);
   stack.new_recording();
   // set independent variable
@@ -30,7 +29,7 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   vars(0).set_gradient(1.0);
   stack.compute_adjoint();
 
-  //std::cout << "Get Loss: " << vars(0).value() << " gradient: " << params.get_gradient() << std::endl;
+  std::cout << "Get Loss: " << vars(0).value() << " gradient: " << params.get_gradient() << std::endl;
   // return value
   return GradValue(vars(0).value(), params.get_gradient());
 }
