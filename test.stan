@@ -7,6 +7,8 @@ transformed parameters
 {
   real zeta <- beta;
   real alpha <- beta;
+  real gamma <- beta;
+  real rl <- beta;
 }
 model
 {

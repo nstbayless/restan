@@ -38,11 +38,10 @@ namespace restan
     void setParams(const adept::Vector& parameters, unsigned int discreteIndStart, unsigned int* discreteDomainLengths);
     void setParam(unsigned int index, double value);
     adept::aVector getParams();
-    unsigned int numParams();
     unsigned int discreteIndexStart;
     unsigned int* discreteDomainLengths;
     unsigned int numParams = 0;
-    unsigned int numVars = 0;
+    unsigned int numVariables = 0;
   private:
     //// these variables change from evaluation to evaluation (getLoss) ////
 
