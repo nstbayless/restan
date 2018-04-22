@@ -23,9 +23,9 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   vars(0) = 0;
 
   // TODO: throw error if parameters.size() is not equal to numParams
-  if (params.size() != numParams)
+  if (parameters.size() != getNumParams() )
   {
-     throw PiError("params.size() is not numParams in Pi::getLoss:31");
+     throw PiError("params.size() is not numParams in Pi::getLoss:28");
   }
 
   // update parameters
@@ -86,7 +86,7 @@ void restan::Pi::setVariables(const adept::Vector& variables)
 
 void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
-  if (endIndex > numVariables)
+  if (endIndex > getNumVariables())
   {
      throw PiError("endIndex exceeds numVariables in restan::updateVariables");
   }
@@ -114,19 +114,38 @@ void restan::Pi::setParam(unsigned int index, double value)
   params(index) = value;
 }
 
+unsigned int restan::Pi::getNumParams() 
+{
+  return numParams;
+}
+
+unsigned int restan::Pi::getNumVariables() 
+{
+  return numVariables;
+}
+
+
 void restan::setParams(const adept::Vector& parameters, unsigned int discreteIndexStart, unsigned int* discreteDomainLengths)
 {
-  if (parameters.size() > pi.numParams) //TODO: check
+  //TODO: check if abstraction layer correct, and working as desired - SUSPICIOUS atm
+  /*if (pi.getNumParams() == 0)
+  {
+	pi.numParams = parameters.size();
+	for (int i=0; i<numParams; i++)
+		pi.params[i] = 0;
+  }
+
+  if (parameters.size() > pi.getNumParams() ) //TODO: check
   {
      throw PiError("index exceeds numParams in restan::setParams");
-  }
+  }*/
   // TODO: throw error if index exceeds numParams
   pi.setParams(parameters, discreteIndexStart, discreteDomainLengths);
 }
 
-void restan::setVariables(const adept::Vector& variables)
+void restan::setVariables(const adept::Vector& variables)  //TODO: check
 {
-  if (variables.size() > pi.numVariables) //TODO: check
+  if (variables.size() > pi.getNumVariables() )
   {
      throw PiError("index exceeds numVariables in Pi::setVariables");
   }
@@ -136,7 +155,7 @@ void restan::setVariables(const adept::Vector& variables)
 
 void restan::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
-  if (endIndex > pi.numVariables)
+  if (endIndex > pi.getNumVariables() )
   {
      throw PiError("endIndex exceeds numVariables in Pi::updateVariables");
   }

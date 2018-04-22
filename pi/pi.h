@@ -50,6 +50,9 @@ namespace restan
     void setParams(const adept::Vector& parameters, unsigned int discreteIndStart, unsigned int* discreteDomainLengths);
     void setParam(unsigned int index, double value);
     adept::aVector getParams();
+	unsigned int getNumVariables();
+	unsigned int getNumParams();
+
     unsigned int discreteIndexStart;
     unsigned int* discreteDomainLengths;
     unsigned int numParams = 0;
