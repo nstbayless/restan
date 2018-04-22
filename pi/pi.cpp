@@ -25,8 +25,8 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   // TODO: throw error if parameters.size() is not equal to numParams
 
   // update parameters
-  params = parameters;
-
+  params(range(0, discreteIndexStart - 1)) = parameters(range(0, discreteIndexStart - 1));
+  //params = parameters;
   // begin autodiff
   stack.new_recording();
 

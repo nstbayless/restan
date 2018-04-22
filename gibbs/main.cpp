@@ -133,9 +133,11 @@ void discreteTest()
 	pi.setLossStatement(&piStatement);
 
 
-	int numSamples = 5000;
+	int numSamples = 1000;
 	Vector samples[numSamples];
 
+
+	std::cout << pi.numParams << std::endl;
 	restan::GHMCMC(getLoss, parameters, 0.1, 25, numSamples, samples, 1, 1);
 
 	std::cout << "GMCMC finished" << std::endl;
