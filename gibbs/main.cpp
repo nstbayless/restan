@@ -20,7 +20,7 @@ void lambdaFromNormalTest()
 	//Do gibbs on discrete variables
 	double lambda = 0.5;
 	Vector parameters = {lambda}; //lambda, Z
-	setParams(parameters, 1);
+	setParams(parameters, 1, NULL);
 
 	double target = 0;
 	Vector variables = {target};
@@ -64,7 +64,8 @@ void discreteTest()
 	double target = 0;
 
 	Vector parameters = {logLambda, Z};
-	setParams(parameters, 1);
+	unsigned int DiscreteDomains = {5};
+	setParams(parameters, 1, &DiscreteDomains);
 
 	Vector variables = {target, k};
 	setVariables(variables);
@@ -128,6 +129,9 @@ void discreteTest()
 		//std::cout<<samples[i]<<std::endl;
   	}
   	std::cout << averageLambda/numSamples << std::endl;
+
+  	//Gibbs sample Z
+  	
 }
 
 

@@ -79,16 +79,17 @@ void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int start
 }
 
 //Setter only used for testing purposes
-void restan::Pi::setParams(const adept::Vector& parameters, unsigned int discreteIndStart)
+void restan::Pi::setParams(const adept::Vector& parameters, unsigned int discreteIndStart, unsigned int* discreteDomLengths)
 {
   params = parameters;
   discreteIndexStart = discreteIndStart;
+  discreteDomainLengths = discreteDomLengths;
 }
 
 
-void restan::setParams(const adept::Vector& parameters, unsigned int discreteIndexStart)
+void restan::setParams(const adept::Vector& parameters, unsigned int discreteIndexStart, unsigned int* discreteDomainLengths)
 {
-  pi.setParams(parameters, discreteIndexStart);
+  pi.setParams(parameters, discreteIndexStart, discreteDomainLengths);
 }
 
 void restan::setVariables(const adept::Vector& variables)
