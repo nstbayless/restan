@@ -319,7 +319,7 @@ void* eval(const Ast& sv) {
         delete(_variableIndex);
         Expression* rhs = (Expression*)eval(*ast.nodes[2]);
         std::string* _assignOp = (std::string*)eval(*(ast.nodes[1]));
-        std::string assignOp = *_assignOp;
+        std::string assignOp = trim(*_assignOp);
         delete(_assignOp);
         if (assignOp.compare("==") != 0 && assignOp.compare("<-") != 0)
         {
