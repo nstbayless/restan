@@ -209,7 +209,14 @@ void restan::parseStan(std::string stanCode)
     };
     if (ast.name == "VariableDeclaration")
     {
-      if (sv.choice() == 1)
+	  int choice = 2;
+	  if (ast.nodes.size() > 1) {
+			choice = 1;
+	  } else if (ast.nodes.size() == 1) {
+			choice = 0;
+	  }
+
+      if (choice == 1)
       {
         // type f = blah
         Statement* declareAssign = new StatementAssign((unsigned int)eval(*ast.nodes[0]), (Expression*)eval(*ast.nodes[2]));
@@ -234,7 +241,7 @@ void restan::parseStan(std::string stanCode)
     if (ast.name == "Statements")
     {
       std::cout<< " statements -- " << sv.token << std::endl;
-      switch (sv.choice())
+      switch (choice)
       {
         case 0:
         {
@@ -366,7 +373,20 @@ void restan::parseStan(std::string stanCode)
     if (ast.name == "ArgList")
     {
       // very bad code that passes vectors around :C
-      switch (sv.choice())
+	  int choice = 4;
+	  if (ast.nodes.size() > 0)
+	  {
+		  if (ast.nodes[0]->name == "Expression" && ast.nodes[1]->name == "ArgList")
+			choice = 1;
+		  else if (ast.nodes[0]->name == "Expression")
+			choice = 2;
+	  }
+	  else if (ast.nodes.size() == 0)
+	  {
+		choice = 3;
+	  }
+
+      switch (choice)
       {
         case 0:
         case 1:
