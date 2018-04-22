@@ -66,9 +66,9 @@ auto syntax = R"(
         FunctionExpression <- Identifier '(' ArgList ')'
         ArgList <- Expression ',' ArgList / Expression '|' ArgList / Expression /
         Constant <- < [0-9]+ >
-        Parameter <- Identifier
+        Parameter <- < [a-zA-Z_]+ >
+        Variable <- < [a-zA-Z_]+ >
         VariableExpression <- Parameter / Variable
-        Variable <- Identifier
         Distribution <- Identifier
 
         # General
@@ -514,17 +514,17 @@ void* eval(const Ast& sv) {
   if (ast.name == "Variable")
   {
     std::string varName = trim(sv.token);
-  if (!variableNames.count(varName))
-  {
-    if (declaring == 2)
+    if (!variableNames.count(varName))
     {
-      variableNames[varName] = vCount++;
-      return eval(sv);
+      if (declaring == 2)
+      {
+        variableNames[varName] = vCount++;
+        return eval(sv);
+      }
+      else throw ParseError("Cannot define variable " + varName);
     }
-    else throw ParseError("Cannot define parameter " + varName);
-  }
-  else
-    return new unsigned int (variableNames[varName]);
+    else
+      return new unsigned int (variableNames[varName]);
   };
 
   if (ast.name == "VariableExpression")
@@ -585,6 +585,7 @@ void restan::parseStan(std::string stanCode)
 // frees parsed expressions
 void restan::parseStanCleanup()
 {
+  std::cout<<"cleaning up "<<std::endl;
   for (Expression* expr : exHeap)
     delete(expr);
   for (Expression** expra : exArrayHeap)
