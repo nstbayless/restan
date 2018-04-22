@@ -77,6 +77,8 @@ void discreteTest()
 	Vector variables = {target, k};
 	setVariables(variables);
 
+	
+
 	std::cout << "Creating exprssions" << std::endl;
 	ExpressionParameter logLambdaEXPR(0);
 	ExpressionParameter ZEXPR(1);
@@ -133,14 +135,14 @@ void discreteTest()
 	int numSamples = 10;
 	Vector samples[numSamples];
 
-	restan::GHMCMC(getLoss, parameters, 0.1, 25, numSamples, samples, 1, 1);
+	restan::HMCMC(getLoss, parameters, 0.1, 25, numSamples, samples);
 
-/*	double averageLambda = 0;
+	double averageLambda = 0;
   	for (int i = 0; i < numSamples; i++) {
   		averageLambda += samples[i](0);
 		//std::cout<<samples[i]<<std::endl;
   	}
-  	std::cout << averageLambda/numSamples << std::endl;*/
+  	std::cout << averageLambda/numSamples << std::endl;
 
   	//Gibbs sample Z
 
@@ -149,6 +151,7 @@ void discreteTest()
 
 int main(int argc, char** args)
 {
+	//lambdaFromNormalTest();
 	discreteTest();
   	return 0;
 }

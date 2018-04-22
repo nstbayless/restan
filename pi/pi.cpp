@@ -35,7 +35,7 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
 
   //std::cout << "Get Loss: " << vars(0).value() << " gradient: " << params.get_gradient()(range(0, discreteIndexStart - 1)) << std::endl;
   // return value
-  return GradValue(vars(0).value(), params.get_gradient()(range(0, discreteIndexStart - 1)));
+  return GradValue(vars(0).value(), params.get_gradient());
 }
 
 ExpressionValue restan::Pi::getParams(unsigned int startIndex, unsigned int endIndex)
