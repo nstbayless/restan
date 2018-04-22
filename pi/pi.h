@@ -41,6 +41,8 @@ namespace restan
     unsigned int numParams();
     unsigned int discreteIndexStart;
     unsigned int* discreteDomainLengths;
+    unsigned int numParams = 0;
+    unsigned int numVars = 0;
   private:
     //// these variables change from evaluation to evaluation (getLoss) ////
 
