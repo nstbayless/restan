@@ -10,7 +10,7 @@ namespace restan
   {
   public:
     virtual void execute() = 0;
-    virtual std::string printTree(int depth);
+    virtual void printTree(int depth = 0);
   };
 }
 

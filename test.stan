@@ -1,11 +1,16 @@
 
-      __BEGIN_STAN_CODE__
       parameters
       {
         real lambda;
+        real beta;
+      }
+      transformed parameters
+      {
+        real zeta <- beta;
+        real alpha <- beta;
       }
       model
       {
         lambda ~ normal(0, 1);
+        alpha ~ normal(5 * lambda, 1)
       }
-      __END_STAN_CODE__
