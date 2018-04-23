@@ -45,9 +45,16 @@ void lambdaFromNormalTest()
 	pi.setLossStatement(&sa);
 
 
+	//Setting OutputExpressions
+	ExpressionParameter p0(0);
+	std::vector<restan::Expression*> outputExpressions;
+	outputExpressions.push_back(&p0);
+	pi.outputExpressions = outputExpressions;
+
 	int numSamples = 8000;
-	Vector samples[numSamples];
+	std::vector<double> samples[numSamples];
 	restan::HMCMC(getLoss, parameters, 0.1, 25, numSamples, samples);
+	
 	double average = 0;
   	for (int i = 0; i < numSamples; i++) {
   		average += samples[i][0];
@@ -61,7 +68,7 @@ void lambdaFromNormalTest()
 	k = 2Z + 3
 	k ~ Poisson(lamda)
 */
-void discreteTest()
+/*void discreteTest()
 {
 	std::cout << "Starting discreteTest" << std::endl;
 	double logLambda = 0.5;
@@ -154,7 +161,7 @@ void discreteTest()
   	//Gibbs sample Z
 
 }
-
+*/
 
 void dataTest()
 {
@@ -164,8 +171,8 @@ void dataTest()
 
 int main(int argc, char** args)
 {
-	//lambdaFromNormalTest();
+	lambdaFromNormalTest();
 	//discreteTest();
-	dataTest();
+	//dataTest();
   	return 0;
 }

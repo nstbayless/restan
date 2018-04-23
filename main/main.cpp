@@ -45,13 +45,13 @@ int main(int argc, char** args)
   adept::Vector v0(restan::pi.numVariables);
   for (int i = 0; i < restan::pi.numVariables; i++)
     v0(i) = 0;
-  adept::Vector samples[N_SAMPLES];
+  std::vector<double> samples[N_SAMPLES];
   restan::pi.setVariables(v0);
   restan::pi.discreteIndexStart = 2;
   std::cout << "Beginning HMCMC" << std::endl;
   restan::HMCMC(restan::getLoss, q0, 0.1, 80, N_SAMPLES, samples);
-  for (int i = 0; i < 50; i++)
-    std::cout<<samples[i]<<std::endl;
+/*  for (int i = 0; i < 50; i++)
+    std::cout<<samples[i]<<std::endl;*/
   restan::parseStanCleanup();
   return 0;
 }

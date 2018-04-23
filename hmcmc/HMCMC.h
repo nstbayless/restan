@@ -26,7 +26,7 @@ namespace restan
   // samples: number of samples
   // samplesOut: returns an array of samples
   
-  void HMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector q0, double epsilon, unsigned int L, unsigned int samples, adept::Vector* samplesOut);
+  void HMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector q0, double epsilon, unsigned int L, unsigned int numSamples, std::vector<double>* samples);
 }
 
 #endif
