@@ -87,6 +87,8 @@ std::vector<restan::Statement**> stArrayHeap;
 std::map<std::string, unsigned int> parameterNames;
 std::map<std::string, unsigned int> variableNames;
 int pCount = 0;
+int pDiscreteStart = 0;
+std::vector<unsigned int> pDiscreteDomain;
 int vCount = 0;
 
 int declaring = false;
@@ -94,6 +96,8 @@ int declaring = false;
 // fixed lookups
 std::map<std::string, fnExpr> distributionMap = {{"normal", restan::distributions::normal}};
 std::map<std::string, fnExpr> functionMap = {{"exp", restan::functions::exp}};
+
+bool declareDiscrete;
 
 // memoize
 void* memoize(const Ast& sv, std::string production, void* proposed, bool dispose = false)
@@ -109,12 +113,14 @@ void* eval(const Ast& sv) {
     std::cout<<"took root production\n";
     std::vector<restan::Statement*> topLevelBlocks;
     // clear output Expressions
-    // restan::pi.outputExpressions.resize(0);
+    restan::pi.outputExpressions.resize(0);
+    pDiscreteDomain.resize(0);
 
     // read parameters block
     if (ast.nodes[1]->name != "ParametersString")
     {
       declaring = 1; // parameters
+      declareDiscrete = false;
       topLevelBlocks.push_back((restan::Statement*)eval(*ast.nodes[1]));
     }
 
@@ -141,9 +147,12 @@ void* eval(const Ast& sv) {
     pi.setLossStatement(lossStatement);
     pi.numParams = pCount;
     pi.numVariables = vCount;
-    pi.discreteIndexStart = pCount;
-  	pi.setParams(pi.numParams);
-  	pi.setVariables(pi.numVariables);
+    pi.discreteIndexStart = pDiscreteStart;
+    pi.setParams(pi.numParams);
+    pi.setVariables(pi.numVariables);
+    pi.discreteDomainLengths = new unsigned int [pDiscreteDomain.size()];
+    for (int i = 0; i < pDiscreteDomain.size(); i++)
+      pi.discreteDomainLengths[i] = pDiscreteDomain[i];
   };
   if (ast.name == "OptionalTransformedParameters" || ast.name == "OptionalParameters")
   {
@@ -190,6 +199,7 @@ void* eval(const Ast& sv) {
   if (ast.name == "Declaration")
   {
     std::string varName = sv.nodes[sv.nodes.size() - 1]->token;
+    std::string type = sv.nodes[0]->token;
     switch (declaring)
     {
       case 0: // error
@@ -204,6 +214,22 @@ void* eval(const Ast& sv) {
         Expression* upper;
         Expression* lower;
         bool useDiscrete = false;
+
+        // check if discrete parameters:
+        if (type == "int" || type == "discrete")
+        {
+          if (!declareDiscrete)
+            pDiscreteStart = pCount;
+          useDiscrete = true;
+          declareDiscrete = true;
+        }
+        else
+        {
+          if (declareDiscrete)
+            throw ParseError("All continous parameters must be declared before discrete parameters.")
+        }
+
+        // read bounds
         if (sv.nodes[1]->name == "Bound")
         {
           for (int i = 1; i < sv.nodes.size() - 1; i++)
@@ -291,12 +317,27 @@ void* eval(const Ast& sv) {
         }
         else
         {
-          // TODO: discrete remapping...
+          if (!useLower || !useUpper)
+          {
+            throw ParseError("restan Gibbs sampler does not support countably infinite parameter domains.")
+          }
+          else
+          {
+            // finite domain
+            int rangeLower = lower.getValue()(0,0).value();
+            int rangeUpper = upper.getValue()(0,0).value();
+            pDiscreteDomain.push_back(rangeUpper - rangeLower);
+            ExpressionParameter* exprPar = new ExpressionParameter(exprPar);
+            exHeap.push_back(exprPar);
+            ExpressionArithmetic* remapExpression = new ExpressionArithmetic(restan::PLUS, lower, exprPar);
+            remapStatement = new StatementAssign(vCount, remapExpression);
+            vCount++;
+          }
         }
 
         pCount++;
         exHeap.push_back(remapExpression);
-        //restan::pi.outputExpressions.pushBack(remapExpression);
+        restan::pi.outputExpressions.pushBack(remapExpression);
         if (remapStatement)
           stHeap.push_back(remapStatement);
         return remapStatement;

@@ -1,8 +1,8 @@
 parameters
 {
-  real<lower = 1> lambda;
+  real<lower = 2, upper = 4> lambda;
 }
 model
 {
-  lambda ~ normal(0, 1);
+  lambda ~ normal(3.5, 2);
 }
