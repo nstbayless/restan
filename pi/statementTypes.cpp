@@ -27,12 +27,15 @@ void restan::StatementBody::print(int depth) const
 {
 	for (int i = 0; i < depth; i++)
 		std::cout << "  ";
-	std::cout << "+ StatementBody {\n";
+	std::cout << "+ StatementBody\n";
+	for (int i = 0; i < depth; i++)
+		std::cout << "  ";
+	std::cout << "{\n";
 	for (int i = 0; i < length; i++)
 		statements[i]->print(depth + 1);
 	for (int i = 0; i < depth; i++)
 		std::cout << "  ";
-	std::cout << "  }\n";
+	std::cout << "}\n\n";
 }
 
 //// StatementAssign ////

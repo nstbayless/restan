@@ -36,15 +36,17 @@ std::string trim(std::string s)
 auto syntax = R"(
         Code <- OptionalData OptionalParameters OptionalTransformedParameters Model
         OptionalData <-
-        OptionalParameters <- 'parameters' '{' ( ParameterDeclaration ';' )* '}' /
-        OptionalTransformedParameters <- 'transformed' 'parameters' '{' ( DeclarationOrStatement ';' )* '}' /
+        OptionalParameters <- ParametersString '{' ( Declaration ';' )* '}' /
+        OptionalTransformedParameters <- 'transformed' ParametersString '{' ( DeclarationOrStatement ';' )* '}' /
         Model <- 'model' Statement
-        DeclarationOrStatement <- VariableDeclaration / Statement
+        DeclarationOrStatement <- DeclarationAssignment / Statement
+
+        # string anchors
+        ParametersString <- 'parameters'
 
         # Declarations
-        VariableDeclaration <- DeclarationLHS AssignOp Expression / DeclarationLHS
-        ParameterDeclaration <- Type Parameter ### / Type '<' BoundsList Identifier
-        DeclarationLHS <- Type Variable ### / Type '<' BoundsList Identifier
+        DeclarationAssignment <- Declaration AssignOp Expression / Declaration
+        Declaration <- Type Variable ### / Type '<' BoundsList Identifier
         Type <- 'int' / 'real' / 'vector' / 'matrix'
         BoundsList <- Bound ',' BoundsList / Bound '>'
         Bound <- BoundType '=' Constant
@@ -166,58 +168,40 @@ void* eval(const Ast& sv) {
   if (ast.name == "Code")
   {
     std::cout<<"took root production\n";
-    declaring = 1;
-    eval(*ast.nodes[1]); // parameters
-    declaring = 2;
-    std::pair<restan::Statement**, int> ttpair;
-    restan::Statement* decStatement;
-    if (ast.nodes[2]->nodes.size() > 0)
-    {
-      if (ast.nodes[2]->nodes[0]->name != "Type" && ast.nodes[2]->nodes[0]->name != "DeclarationLHS")
-      {
-        // transformed parameters with at least TWO statmeents (YES, checking for "Type" tells us if there is only one statement, because that's the amazing way that this library works.)
-        auto* _tppair = (std::pair<restan::Statement**, int>*)eval(*(ast.nodes[2])); // transformed parameters
-        ttpair = *_tppair;
-        delete(_tppair);
-      }
-      else
-      {
-        // transformed parameters but ONLY ONE statement, because that's different
-        decStatement = (restan::Statement*)eval(*ast.nodes[2]);
-      }
-    }
-    declaring = 0;
-    restan::Statement* modelStatement = (restan::Statement*)eval(*ast.nodes[3]); // model
+    std::vector<restan::Statement*> topLevelBlocks;
+    declaring = 1; // parameters
+    // read parameters block
+    eval(*ast.nodes[1]);
+    declaring = 2; // variables
 
-    if (ast.nodes[2]->nodes.size() > 0)
+    // read transformed parameters block
+    if (ast.nodes[2]->name != "ParametersString")
     {
-      if (ast.nodes[2]->nodes[0]->name != "Type" && ast.nodes[2]->nodes[0]->name != "DeclarationLHS")
-      {
-        // transformed parameters with two statements need to gobble the model statement into their list of statements and then sneakily make the model statement actually a sub-statement of the statement body that it creates, and then set the pi's loss statement to be the statement body that it created. :)
-        ttpair.first[ttpair.second] = modelStatement;
-        modelStatement = new restan::StatementBody(ttpair.first, ttpair.second+1);
-        stHeap.push_back(modelStatement);
-      }
-      else
-      {
-        // kind of similar as the previous comment but of course it has to be different because the library works differently if there is only ONE statement.
-        Statement** states = new Statement*[2];
-        stArrayHeap.push_back(states);
-        states[0] = decStatement;
-        states[1] = modelStatement;
-        modelStatement = new restan::StatementBody(states, 2);
-      }
+      topLevelBlocks.push_back((restan::Statement*)eval(*ast.nodes[2]));
     }
-    pi.setLossStatement(modelStatement);
+
+    // read model
+    declaring = 0;
+    topLevelBlocks.push_back((restan::Statement*)eval(*ast.nodes[3])); // model
+
+    // aggregate top-level blocks
+    restan::Statement** lossStatementArray = new restan::Statement*[topLevelBlocks.size()];
+    for (int i = 0; i < topLevelBlocks.size(); i++)
+      lossStatementArray[i] = topLevelBlocks[i];
+    StatementBody* lossStatement = new StatementBody(lossStatementArray, topLevelBlocks.size());
+    stArrayHeap.push_back(lossStatementArray);
+    stHeap.push_back(lossStatement);
+    pi.setLossStatement(lossStatement);
     pi.numParams = pCount;
     pi.numVariables = vCount;
     pi.discreteIndexStart = pCount;
   };
   if (ast.name == "OptionalParameters")
   {
-    for (int i = 0; i < sv.nodes.size(); i ++)
+    for (int i = 1; i < sv.nodes.size(); i ++)
     {
-      eval(*ast.nodes[i]);
+      unsigned int *_idx = (unsigned int*) eval(*ast.nodes[i]);
+      delete(_idx);
     }
   };
   if (ast.name == "OptionalTransformedParameters")
@@ -225,18 +209,23 @@ void* eval(const Ast& sv) {
     restan::Statement** sl = new restan::Statement*[sv.nodes.size()+1];
     restan::Statement** slo = sl;
     stArrayHeap.push_back(sl);
-    for (int i = 0; i < sv.nodes.size(); i ++)
+    for (int i = 1; i < sv.nodes.size(); i ++)
     {
       restan::Statement* s = (restan::Statement*)eval(*ast.nodes[i]);
-      if (ast.nodes[i]->name == "DeclarationLHS")
+      if (ast.nodes[i]->name == "Declaration")
+      {
+        delete(s);
         continue;
+      }
       if (s)
       {
         *slo = s;
         slo ++;
       }
     }
-    return new std::pair<restan::Statement**, int>(sl, slo - sl);
+    restan::Statement* sb = new StatementBody(sl, slo - sl);
+    stHeap.push_back(sb);
+    return sb;
   };
   if (ast.name == "Model")
   {
@@ -247,38 +236,29 @@ void* eval(const Ast& sv) {
   {
     return (Expression*)eval(*ast.nodes[0]);
   };
-  if (ast.name == "VariableDeclaration")
+  if (ast.name == "DeclarationAssignment")
   {
-    int choice = 2;
-
-    if (ast.nodes.size() > 1) {
-      choice = 1;
-    } else if (ast.nodes.size() == 1) {
-      choice = 0;
-    }
-    if (choice == 1)
-    {
-      // type f = blah
-      unsigned int* a = reinterpret_cast<unsigned int*>(eval(*ast.nodes[0]));
-      restan::Statement* declareAssign = new restan::StatementAssign(*a, (Expression*)eval(*ast.nodes[2]));
-      delete(a);
-      stHeap.push_back(declareAssign);
-      return (restan::Statement*) memoize(sv, "VD", declareAssign, true);
-    }
-    else
-    {
-      (restan::Statement*)eval(*ast.nodes[1]); // trigger
-      return static_cast<restan::Statement*>(nullptr);
-    }
+    Expression* rhs = (Expression*)eval(*sv.nodes[2]);
+    unsigned int* _idx = (unsigned int*)eval(*sv.nodes[0]);
+    unsigned int idx = *_idx;
+    delete(_idx);
+    StatementAssign* sa = new StatementAssign(idx, rhs);
+    stHeap.push_back(sa);
+    return sa;
   };
-  if (ast.name == "ParameterDeclaration")
+  if (ast.name == "Declaration")
   {
-    (restan::Statement*)eval(*ast.nodes[1]); // trigger
-    return static_cast<restan::Statement*>(nullptr);
-  };
-  if (ast.name == "DeclarationLHS")
-  {
-    return eval(*ast.nodes[ast.nodes.size()-1]);
+    std::string varName = sv.nodes[sv.nodes.size() - 1]->token;
+    switch (declaring)
+    {
+      case 0: // error
+        throw ParseError("Cannot declare here");
+        break;
+      case 1: // parameter
+        return new unsigned int(parameterNames[varName] = pCount++);
+      case 2: // variable
+        return new unsigned int(variableNames[varName] = vCount++);
+    }
   };
   if (ast.name == "Identifier")
   {

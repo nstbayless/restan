@@ -5,13 +5,11 @@ parameters
 }
 transformed parameters
 {
-  real zeta <- beta;
-  real alpha <- beta;
-  real gamma <- beta;
-  real rl <- beta;
+  real zeta <- beta * 3;
+  real alpha <- zeta + 4;
 }
 model
 {
   lambda ~ normal(0, 1);
-  beta ~ normal(5*lambda, 1);
+  alpha ~ normal(55 + lambda, 1);
 }
