@@ -71,7 +71,8 @@ void lambdaFromNormalTest()
 	k = 2Z + 3
 	k ~ Poisson(lamda)
 */
-/*void discreteTest()
+
+void discreteTest()
 {
 	std::cout << "Starting discreteTest" << std::endl;
 	double logLambda = 0.5;
@@ -142,9 +143,17 @@ void lambdaFromNormalTest()
 	std::cout << "Setting Loss Statement " << std::endl;
 	pi.setLossStatement(&piStatement);
 
+	//Setting OutputExpressions
+	ExpressionParameter p0(0);
+	ExpressionParameter p1(1);
+	std::vector<restan::Expression*> outputExpressions;
+	outputExpressions.push_back(&p0);
+	outputExpressions.push_back(&p1);
+	pi.outputExpressions = outputExpressions;
+
 
 	int numSamples = 1000;
-	Vector samples[numSamples];
+	std::vector<double> samples[numSamples];
 
 
 	std::cout << pi.numParams << std::endl;
@@ -154,17 +163,17 @@ void lambdaFromNormalTest()
 	double averageLambda = 0;
 	int averageDiscrete = 0;
   	for (int i = 0; i < numSamples; i++) {
-  		averageLambda += samples[i](0);
-  		averageDiscrete += samples[i](1);
-		std::cout<<samples[i]<<std::endl;
-
+  		averageLambda += samples[i][0];
+  		averageDiscrete += samples[i][1];
+		printVector(samples[i]);
   	}
+  	
   	std::cout << averageLambda/numSamples << std::endl;
 	std::cout << averageDiscrete/numSamples << std::endl;
   	//Gibbs sample Z
 
 }
-*/
+
 
 void dataTest()
 {
@@ -174,8 +183,8 @@ void dataTest()
 
 int main(int argc, char** args)
 {
-	lambdaFromNormalTest();
-	//discreteTest();
+	//lambdaFromNormalTest();
+	discreteTest();
 	//dataTest();
   	return 0;
 }
