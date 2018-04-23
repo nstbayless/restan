@@ -10,15 +10,16 @@
 #include "utils/utils.h"
 #include "parser/parser.h"
 #include "hmcmc/GHMCMC.h"
+#include "data/parseData.h"
 
 const int N_SAMPLES = 70;
 
 int main(int argc, char** args)
 {
-  std::string filename = "test.stan";
-  //std::string testProgram;
+  std::string filename = args[1];
+
   std::ifstream input(filename);
-  //std::stringstream sstr;
+
 
   //input.open(filename, std::ifstream::in);
 
@@ -48,8 +49,14 @@ int main(int argc, char** args)
     v0(i) = 0;
   std::vector<double> samples[N_SAMPLES];
   restan::pi.setVariables(v0);
+  if (restan::pi.numObservedData > 0)
+  {
+    std::cout << "Reading data" << std::endl;
+    if (restan::parseData(args[2]))
+      return 2;
+  }
   std::cout << "Beginning GHMCMC" << std::endl;
-  restan::GHMCMC(restan::getLoss, q0, 0.1, 80, N_SAMPLES, samples, 1, 1);
+  restan::GHMCMC(restan::getLoss, q0, 0.01, 80, N_SAMPLES, samples, 1, 1);
   for (int i = 0; i < 50; i++)
     printVector(samples[i]);
   restan::parseStanCleanup();

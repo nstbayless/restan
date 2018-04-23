@@ -59,6 +59,7 @@ namespace restan
     unsigned int numParams = 0;
     unsigned int numVariables = 0;
     unsigned int numObservedData = 0;
+
     // pointer to pointer table of ExpressionValues
     ExpressionValue** data;
 
@@ -69,13 +70,12 @@ namespace restan
 
     // adept execution trace
     adept::Stack stack;
+
     // parameter vector
     adept::aVector params;
 
     // variable vector
     adept::aVector vars;
-
-
 
     // statement list
     Statement* statement;

@@ -7,10 +7,13 @@ using namespace restan;
 using namespace adept;
 using namespace std;
 
+default_random_engine _generator;
+uniform_real_distribution<double> _stdunif(0, 1.0);
+
 int SampleDiscrete(double* unnormalizedProb, unsigned int size, double Z)
 {
 	//Random number between 0 and Z
-	double sampledDouble = ( ((double) rand()) / (double) RAND_MAX ) * Z;
+	double sampledDouble = _stdunif(_generator) * Z;
 
 	for (int i = 0; i < size; i++) {
 		sampledDouble -= unnormalizedProb[i];
@@ -26,43 +29,51 @@ void restan::GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector 
 
 	while (numSamples > 0)
 	{
+
+		//Run one sample of HMCMC to update continous parameters
+		restan::HMCMC(u, q0, epsilon, L, 1, samplesOut);
+
+
 		//Update one discrete parameter
 		unsigned int numParams = pi.numParams;
 		unsigned int discreteIndexStart = pi.discreteIndexStart;
 		unsigned int numDiscrete = numParams - discreteIndexStart;
-		unsigned int randDiscreteIndex = (rand() % numDiscrete);
-		unsigned int randDiscreteParamIndex = randDiscreteIndex + discreteIndexStart;
 
-		unsigned int* domainSizes = pi.discreteDomainLengths;
-		unsigned int randDiscreteDomainSize = domainSizes[randDiscreteIndex];
-		
-		//Run one sample of HMCMC to update continous parameters 
-		restan::HMCMC(u, q0, epsilon, L, 1, samplesOut);
-
-		//Update one discrete parameter
-		//std::cout << "Rand Discrete Index: " << randDiscreteIndex << " Domain Size: " << randDiscreteDomainSize << std::endl;
-		Vector currentParams(q0);
-		//Make Samples include discrete variables
-		adept::aVector aParams = pi.getParams();
-		for (int i = 0; i < aParams.size(); i++)
+		if (numDiscrete != 0)
 		{
-			currentParams[i] = aParams[i].value();
+			// gibbs sampling
+			unsigned int randDiscreteIndex = (rand() % numDiscrete);
+			unsigned int randDiscreteParamIndex = randDiscreteIndex + discreteIndexStart;
+
+			unsigned int* domainSizes = pi.discreteDomainLengths;
+			unsigned int randDiscreteDomainSize = domainSizes[randDiscreteIndex];
+
+
+
+			//Update one discrete parameter
+			//std::cout << "Rand Discrete Index: " << randDiscreteIndex << " Domain Size: " << randDiscreteDomainSize << std::endl;
+			Vector currentParams(q0);
+			//Make Samples include discrete variables
+			adept::aVector aParams = pi.getParams();
+			for (int i = 0; i < aParams.size(); i++)
+			{
+				currentParams[i] = aParams[i].value();
+			}
+			double unnormalizedProb[randDiscreteDomainSize];
+			double Z = 0;
+			for (int i = 0; i < randDiscreteDomainSize; i++) {
+				pi.setParam(randDiscreteParamIndex, i);
+
+				unnormalizedProb[i] = exp(-u(currentParams).first);
+				Z += unnormalizedProb[i];
+				//std::cout << "unnormalizedProb:[ " << i << "] : " << unnormalizedProb[i] << std::endl;
+			}
+			unsigned int newDiscreteDomainIndex = SampleDiscrete(unnormalizedProb, randDiscreteDomainSize, Z);
+			//std::cout <<"newDiscreteDomainIndex: " << newDiscreteDomainIndex << std::endl;
+
+			//Sample and update discrete parameter
+			pi.setParam(randDiscreteParamIndex, newDiscreteDomainIndex);
 		}
-		double unnormalizedProb[randDiscreteDomainSize];
-		double Z = 0;
-		for (int i = 0; i < randDiscreteDomainSize; i++) {
-			pi.setParam(randDiscreteParamIndex, i);
-
-			unnormalizedProb[i] = exp(-u(currentParams).first);
-			Z += unnormalizedProb[i];
-			//std::cout << "unnormalizedProb:[ " << i << "] : " << unnormalizedProb[i] << std::endl;
-		}
-		unsigned int newDiscreteDomainIndex = SampleDiscrete(unnormalizedProb, randDiscreteDomainSize, Z);
-		//std::cout <<"newDiscreteDomainIndex: " << newDiscreteDomainIndex << std::endl;
-
-		//Sample and update discrete parameter
-		pi.setParam(randDiscreteParamIndex, newDiscreteDomainIndex);
-
 
 		//TODO:: Change to pi.output
 		//Retransforms constrained (log or log-odds) parameters

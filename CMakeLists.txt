@@ -13,6 +13,7 @@ file(GLOB _SRC
     "pi/*.cpp"
     "parser/*.cpp"
     "utils/*.cpp"
+    "data/*"
 )
 
 file(GLOB _MAIN

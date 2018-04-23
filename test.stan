@@ -1,11 +1,12 @@
+data
+{
+  real x;
+}
 parameters
 {
-  real<lower = 0> lambda;
-  int<lower = 0, upper = 4> z;
-  int<lower = 0, upper = 8> zb;
+  int<lower = 0, upper = 100> mu;
 }
 model
 {
-  lambda ~ normal(1, 0.2);
-  z ~ poisson(lambda);
+  x ~ normal(mu, 0.1);
 }

@@ -23,7 +23,6 @@ namespace restan
 {
   class Statement;
 }
-class ExpressionValue;
 
 std::string trim(std::string s)
 {
@@ -36,7 +35,7 @@ std::string trim(std::string s)
 
 auto syntax = R"(
         Code <- OptionalData OptionalParameters OptionalTransformedParameters Model
-        OptionalData <-
+        OptionalData <- DataString '{' (Declaration ';')* '}' /
         OptionalParameters <- ParametersString '{' ( Declaration ';' )* '}' /
         OptionalTransformedParameters <- 'transformed' ParametersString '{' ( DeclarationOrStatement ';' )* '}' /
         Model <- 'model' Statement
@@ -44,6 +43,7 @@ auto syntax = R"(
 
         # string anchors
         ParametersString <- 'parameters'
+        DataString <- 'data'
 
         # Declarations
         DeclarationAssignment <- Declaration AssignOp Expression / Declaration
@@ -69,12 +69,13 @@ auto syntax = R"(
         FunctionExpression <- Identifier '(' Expression (',' Expression)* ')' / Identifier '(' ')'
         Constant <- < [0-9]+ '.' [0-9]+ > / < [0-9]+ >
         Parameter <- < [a-zA-Z_][a-zA-Z0-9_]* >
+        Data <- < [a-zA-Z_][a-zA-Z0-9_]* >
         Variable <- < [a-zA-Z_][a-zA-Z0-9_]* >
         VariableExpression <- < [a-zA-Z_]+ >
         Distribution <- < [a-zA-Z_]+ >
 
         # General
-        Identifier <- < [a-zA-Z_]+ >
+        Identifier <- < [a-zA-Z_][a-zA-Z0-9_]* >
         %whitespace <- [ \t\n\r]* / '//' < [^\n]* >
     )";
 
@@ -86,6 +87,8 @@ std::vector<restan::Statement**> stArrayHeap;
 // variable / parameter names
 std::map<std::string, unsigned int> parameterNames;
 std::map<std::string, unsigned int> variableNames;
+std::map<std::string, unsigned int> dataNames;
+int dCount = 0;
 int pCount = 0;
 int pDiscreteStart = 0;
 std::vector<unsigned int> pDiscreteDomain;
@@ -121,7 +124,16 @@ void* eval(const Ast& sv) {
     std::vector<restan::Statement*> topLevelBlocks;
     // clear output Expressions
     restan::pi.outputExpressions.resize(0);
+
+    // reset accumulators
     pDiscreteDomain.resize(0);
+
+    // read parameters block
+    if (ast.nodes[0]->name != "DataString")
+    {
+      declaring = 3; // data
+      topLevelBlocks.push_back((restan::Statement*)eval(*ast.nodes[0]));
+    }
 
     // read parameters block
     if (ast.nodes[1]->name != "ParametersString")
@@ -154,14 +166,19 @@ void* eval(const Ast& sv) {
     pi.setLossStatement(lossStatement);
     pi.numParams = pCount;
     pi.numVariables = vCount;
-    pi.discreteIndexStart = pDiscreteStart;
+    if (declareDiscrete)
+      pi.discreteIndexStart = pDiscreteStart;
+    else
+      pi.discreteIndexStart = pCount;
     pi.setParams(pi.numParams);
     pi.setVariables(pi.numVariables);
     pi.discreteDomainLengths = new unsigned int [pDiscreteDomain.size()];
     for (int i = 0; i < pDiscreteDomain.size(); i++)
       pi.discreteDomainLengths[i] = pDiscreteDomain[i];
+    pi.data = new ExpressionValue*[dCount];
+    pi.numObservedData = dCount;
   };
-  if (ast.name == "OptionalTransformedParameters" || ast.name == "OptionalParameters")
+  if (ast.name == "OptionalTransformedParameters" || ast.name == "OptionalParameters" || ast.name == "OptionalData")
   {
     restan::Statement** sl = new restan::Statement*[sv.nodes.size()+1];
     restan::Statement** slo = sl;
@@ -207,6 +224,13 @@ void* eval(const Ast& sv) {
   {
     std::string varName = sv.nodes[sv.nodes.size() - 1]->token;
     std::string type = sv.nodes[0]->token;
+    if (declaring != 0)
+    {
+      if (variableNames.count(varName) > 0
+       || parameterNames.count(varName) > 0
+       || dataNames.count(varName) > 0)
+        throw ParseError("Cannot redefine symbol " + varName);
+    }
     switch (declaring)
     {
       case 0: // error
@@ -333,7 +357,7 @@ void* eval(const Ast& sv) {
             // finite domain
             int rangeLower = lower->getValue()(0,0).value();
             int rangeUpper = upper->getValue()(0,0).value();
-            pDiscreteDomain.push_back(rangeUpper - rangeLower);
+            pDiscreteDomain.push_back(rangeUpper - rangeLower + 1);
             if (rangeLower != 0)
             {
               // remap
@@ -360,6 +384,8 @@ void* eval(const Ast& sv) {
       }
       case 2: // variable
         return new unsigned int(variableNames[varName] = vCount++);
+      case 3: // data
+        return new unsigned int(dataNames[varName] = dCount++);
     }
   };
   if (ast.name == "Identifier")
@@ -621,6 +647,8 @@ void* eval(const Ast& sv) {
     int choice = 1;
     if (parameterNames.count(sv.token) > 0)
       choice = 0;
+    if (dataNames.count(sv.token) > 0)
+      choice = 2;
     switch (choice)
     {
         case 0: // parameter
@@ -645,39 +673,42 @@ void* eval(const Ast& sv) {
           exHeap.push_back(expr);
           return memoize(sv, "varExpr (Variable)", expr, true);
         }
+        case 2:
+        {
+          Ast* _ast = reinterpret_cast<Ast*>((void*)(&ast));
+          *(std::string*)(void*)(&_ast->name) = std::string("Data");
+          unsigned int * a = (unsigned int*)eval(*_ast);
+          unsigned int b = *a;
+          delete(a);
+          expr = new ExpressionData(b);
+          exHeap.push_back(expr);
+          return memoize(sv, "varExpr (Data)", expr, true);
+        }
     }
   };
 
   if (ast.name == "Parameter")
   {
     std::string varName = trim(sv.token);
-    if (!parameterNames.count(varName))
-    {
-      if (declaring == 1)
-      {
-        parameterNames[varName] = pCount++;
-        return eval(sv);
-      }
-      else throw ParseError("Cannot define parameter " + varName);
-    }
-    else
-      return new unsigned int (parameterNames[varName]);
+    if (parameterNames.count(varName) == 0)
+      throw ParseError("Unknown parameter " + varName);
+    return new unsigned int (parameterNames[varName]);
   };
 
   if (ast.name == "Variable")
   {
     std::string varName = trim(sv.token);
-    if (!variableNames.count(varName))
-    {
-      if (declaring == 2)
-      {
-        variableNames[varName] = vCount++;
-        return eval(sv);
-      }
-      else throw ParseError("Cannot define variable " + varName);
-    }
-    else
-      return new unsigned int (variableNames[varName]);
+    if (variableNames.count(varName) == 0)
+      throw ParseError("Unknown variable " + varName);
+    return new unsigned int (variableNames[varName]);
+  };
+
+  if (ast.name == "Data")
+  {
+    std::string varName = trim(sv.token);
+    if (dataNames.count(varName) == 0)
+      throw ParseError("Unknown data " + varName);
+    return new unsigned int (dataNames[varName]);
   };
 };
 
@@ -686,6 +717,7 @@ void restan::parseStan(std::string stanCode)
 {
   vCount = 0;
   pCount = 0;
+  dCount = 0;
   variableNames["target"] = vCount++;
 
 

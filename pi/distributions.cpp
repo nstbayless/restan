@@ -10,16 +10,34 @@ const double PI  =3.141592653589793238463;
 */
 ExpressionValue restan::distributions::normal(ExpressionValue* exps, unsigned int) // x, mu, sigma
 {
-	ExpressionValue xMinusMulhs = (exps[0] - exps[1]);
-  ExpressionValue xMinusMurhs = transpose(exps[0] - exps[1]);
-  ExpressionValue xMinusMuSquared = adept::matmul(xMinusMulhs, xMinusMurhs);
+	if (exps[1].size() == 1 && exps[2].size() == 1)
+	{
+		adept::adouble mu = exps[1](0,0);
+		adept::adouble sigma = exps[2](0,0);
+		ExpressionValue xMinusMu = (exps[0] - mu);
+		for (int i = 0; i < xMinusMu.size(); i ++)
+			xMinusMu(0,i) *= xMinusMu(0,i);
 
-  ExpressionValue sigmaSquared = adept::matmul(exps[2], transpose(exps[2]));
+	  adept::adouble sigmaSquared = sigma * sigma;
+		adept::adouble sigmaCorrection = log(2*PI*sigmaSquared);
 
+		ExpressionValue s(1,1);
+		s(0,0) = 0;
+		for (int i = 0; i < xMinusMu.size(); i++)
+			s += xMinusMu(0,i)/(2*sigmaSquared);
+	  return exps[0].size() * sigmaCorrection + s;
+	}
+	else
+	{
+		ExpressionValue xMinusMulhs = (exps[0] - exps[1]);
+	  ExpressionValue xMinusMurhs = transpose(exps[0] - exps[1]);
+	  ExpressionValue xMinusMuSquared = adept::matmul(xMinusMulhs, xMinusMurhs);
 
-  //	std::cout << lhs.dimensions() << std::endl;
-  //	std::cout << rhs.dimensions() << std::endl;
-  return -log(1/(2*PI*sigmaSquared)) + xMinusMuSquared/(2*sigmaSquared);
+		// TODO: this should not be matrix multiplication
+	  ExpressionValue sigmaSquared = adept::matmul(exps[2], transpose(exps[2]));
+
+	  return -log(1/(2*PI*sigmaSquared)) + xMinusMuSquared/(2*sigmaSquared);
+	}
 }
 ExpressionValue restan::distributions::uniform(ExpressionValue* exps, unsigned int) // x
 {

@@ -23,7 +23,7 @@ void restan::ExpressionConstant::print(int depth) const {
 	int space = 2*depth;
 	while(space--)
 		std::cout << " ";
-	std::cout << "- Expression Constant (" << std::endl;
+	std::cout << "- ExpressionConstant (" << std::endl;
 	std::cout << value << ")\n";
 }
 
@@ -48,7 +48,7 @@ void restan::ExpressionParameter::print(int depth) const {
 	int space = 2*depth;
 	while(space--)
 		std::cout << " ";
-	std::cout << "- Expression Parameter: p";
+	std::cout << "- ExpressionParameter: p";
   if (parameterIndexStart >= restan::pi.discreteIndexStart)
     std::cout << "#";
   std::cout << "[" << parameterIndexStart;
@@ -78,7 +78,7 @@ void restan::ExpressionVariable::print(int depth) const {
 	int space = 2*depth;
 	while(space--)
 		std::cout << " ";
-    std::cout << "- Expression Variable: v[" << variableIndexStart;
+    std::cout << "- ExpressionVariable: v[" << variableIndexStart;
     if (variableIndexEnd != variableIndexStart + 1)
       std::cout <<", "<< variableIndexEnd;
     std::cout << "]\n";
@@ -122,7 +122,7 @@ ExpressionValue restan::ExpressionArithmetic::getValue()
       arithResult = adept::matmul(lhsVal, rhsVal);
       break;
     case DOTPRODUCT:
-      //Dimensions must be 1x4 * 4*1
+      //Dimensions must be 1xn * nx1
       if (lhs_col == rhs_row)
         arithResult = adept::matmul(lhsVal, rhsVal);
       else
@@ -146,7 +146,7 @@ void restan::ExpressionArithmetic::print(int depth) const {
 
 	while(space--)
 		std::cout << " ";
-	std::cout << "- Expression Arithmetic: Operation: " << operationName[operation] << std::endl;
+	std::cout << "- ExpressionArithmetic: Operation: " << operationName[operation] << std::endl;
 	lhs->print(depth+1);
 	rhs->print(depth+1);
 }
@@ -217,5 +217,5 @@ void restan::ExpressionData::print(int depth) const {
   int space = 2*depth;
   while(space--)
     std::cout << " ";
-  std::cout << "- ExpressionData " << std::endl;
+  std::cout << "- ExpressionData: d[" << dataIndex << "]" << std::endl;
 }
