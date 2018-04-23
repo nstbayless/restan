@@ -67,7 +67,7 @@ auto syntax = R"(
         FactorOp <- '*' / '/'
         ExpressionFactor <- FunctionExpression / '(' Expression ')' / Constant / VariableExpression
         FunctionExpression <- Identifier '(' Expression (',' Expression)* ')' / Identifier '(' ')'
-        Constant <- < [0-9]+ >
+        Constant <- < [0-9]+ '.' [0-9]+ > / < [0-9]+ >
         Parameter <- < [a-zA-Z_]+ >
         Variable <- < [a-zA-Z_]+ >
         VariableExpression <- < [a-zA-Z_]+ >
@@ -551,7 +551,9 @@ void* eval(const Ast& sv) {
 
   if (ast.name == "Constant")
   {
-    Expression* expr = new ExpressionConstant(stoi(sv.token, nullptr, 10));
+	double constant;
+	std::stringstream strConst(sv.token); strConst >> constant;
+    Expression* expr = new ExpressionConstant( constant );
     exHeap.push_back(expr);
     return memoize(sv, "Constant", expr, true);
   };

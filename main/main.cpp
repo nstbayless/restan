@@ -14,10 +14,10 @@ const int N_SAMPLES = 70;
 
 int main(int argc, char** args)
 {
-  std::string filename = "test.stan";
+  std::string filename = "test2.stan";
   //std::string testProgram;
   std::ifstream input(filename);
-  std::stringstream sstr;
+  //std::stringstream sstr;
 
   //input.open(filename, std::ifstream::in);
 
