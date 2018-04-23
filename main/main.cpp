@@ -7,6 +7,7 @@
 #include <adept.h>
 #include <adept_arrays.h>
 
+#include "utils/utils.h"
 #include "parser/parser.h"
 #include "hmcmc/HMCMC.h"
 
@@ -50,8 +51,8 @@ int main(int argc, char** args)
   restan::pi.discreteIndexStart = 2;
   std::cout << "Beginning HMCMC" << std::endl;
   restan::HMCMC(restan::getLoss, q0, 0.1, 80, N_SAMPLES, samples);
-/*  for (int i = 0; i < 50; i++)
-    std::cout<<samples[i]<<std::endl;*/
+  for (int i = 0; i < 50; i++)
+    printVector(samples[i]);
   restan::parseStanCleanup();
   return 0;
 }

@@ -1,10 +1,13 @@
 #include <adept.h>
 #include <adept_arrays.h>
+#include "utils/utils.h"
+
 #include "pi/pi.h"
 #include "pi/expressionTypes.h"
 #include "pi/statementTypes.h"
 #include "pi/distributions.h"
 #include "pi/functions.h"
+
 
 #include "hmcmc/GHMCMC.h"
 
@@ -51,14 +54,14 @@ void lambdaFromNormalTest()
 	outputExpressions.push_back(&p0);
 	pi.outputExpressions = outputExpressions;
 
-	int numSamples = 8000;
+	int numSamples = 100;
 	std::vector<double> samples[numSamples];
 	restan::HMCMC(getLoss, parameters, 0.1, 25, numSamples, samples);
 	
 	double average = 0;
   	for (int i = 0; i < numSamples; i++) {
   		average += samples[i][0];
-		//std::cout<<samples[i]<<std::endl;
+		printVector(samples[i]);
   	}
   	std::cout << "Average: " << average/numSamples << std::endl;
 }

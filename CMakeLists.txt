@@ -12,6 +12,7 @@ file(GLOB _SRC
     "hmcmc/*.cpp"
     "pi/*.cpp"
     "parser/*.cpp"
+    "utils/*.cpp"
 )
 
 file(GLOB _MAIN
