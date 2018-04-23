@@ -21,6 +21,7 @@ namespace restan
     private:
     std::string whatText;
   };
+
 }
 
 #endif

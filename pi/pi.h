@@ -21,6 +21,18 @@ namespace restan
     StartIndexInvalid() {}
   };
 
+  class PiError : public std::exception
+  {
+    public:
+      PiError(std::string s): whatText(s) {}
+      std::string what()
+      {
+        return whatText.c_str();
+      }
+    private:
+    std::string whatText;
+  };
+
   class Pi
   {
   public:
@@ -39,6 +51,9 @@ namespace restan
     void setParams(const adept::Vector& parameters, unsigned int discreteIndStart, unsigned int* discreteDomainLengths);
     void setParam(unsigned int index, double value);
     adept::aVector getParams();
+	unsigned int getNumVariables();
+	unsigned int getNumParams();
+
     unsigned int discreteIndexStart;
     unsigned int* discreteDomainLengths;
     unsigned int numParams = 0;
