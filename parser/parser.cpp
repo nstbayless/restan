@@ -212,6 +212,8 @@ void* eval(const Ast& sv) {
     pi.numParams = pCount;
     pi.numVariables = vCount;
     pi.discreteIndexStart = pCount;
+	pi.setParams(pi.numParams);
+	pi.setVariables(pi.numVariables);
   };
   if (ast.name == "OptionalParameters")
   {
