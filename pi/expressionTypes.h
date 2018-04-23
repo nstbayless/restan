@@ -96,6 +96,15 @@ namespace restan
       Expression* indEXPR;
   };
 
+  class ExpressionData : public Expression
+  {
+  public: 
+    ExpressionData(unsigned int dataIndex);
+    virtual ExpressionValue getValue() override;
+    virtual void print(int depth) const override;
+  private:
+    unsigned int dataIndex;
+  };
 }
 
 #endif

@@ -155,6 +155,11 @@ void discreteTest()
 
 }
 
+void discreteDataTest()
+{
+	
+}
+
 
 int main(int argc, char** args)
 {

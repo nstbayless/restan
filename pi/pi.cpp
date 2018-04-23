@@ -131,3 +131,9 @@ void restan::updateVariables(const ExpressionValue& vals, unsigned int startInde
   // TODO: throw error if index exceeds numVariables
   pi.updateVariables(vals, startIndex, endIndex);
 }
+
+// TODO:: return smarter
+ExpressionValue restan::Pi::getData(unsigned int dataIndex)
+{
+  return *(pi.data[dataIndex]);
+}

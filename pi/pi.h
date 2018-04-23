@@ -38,11 +38,15 @@ namespace restan
     void setParams(unsigned int numParameters);
     void setParams(const adept::Vector& parameters, unsigned int discreteIndStart, unsigned int* discreteDomainLengths);
     void setParam(unsigned int index, double value);
+    ExpressionValue getData(unsigned int variableDataIndex);
     adept::aVector getParams();
     unsigned int discreteIndexStart;
     unsigned int* discreteDomainLengths;
     unsigned int numParams = 0;
     unsigned int numVariables = 0;
+    unsigned int numObservedData = 0;
+    // pointer to pointer table of ExpressionValues
+    ExpressionValue** data;
   private:
     //// these variables change from evaluation to evaluation (getLoss) ////
 
@@ -54,8 +58,7 @@ namespace restan
     // variable vector
     adept::aVector vars;
 
-    // data vector
-    adept::aVector data;
+    
 
     // statement list
     Statement* statement;

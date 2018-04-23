@@ -197,3 +197,22 @@ void restan::ExpressionDereference::print(int depth) const {
   vecEXPR->print(depth+1);
   indEXPR->print(depth+1);
 }
+
+
+//// ExpressionData ////
+restan::ExpressionData::ExpressionData(unsigned int dataIndex)
+:dataIndex(dataIndex)
+{}
+
+//Gets the corresponding vector in Pi
+ExpressionValue restan::ExpressionData::getValue()
+{
+  return pi.getData(dataIndex);
+}
+
+void restan::ExpressionData::print(int depth) const {
+  int space = 2*depth;
+  while(space--)
+    std::cout << " ";
+  std::cout << "- ExpressionData " << std::endl;
+}

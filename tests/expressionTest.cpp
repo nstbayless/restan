@@ -132,3 +132,31 @@ TEST_CASE ("Testing simple setter for Params and Variables")
 
 	std::cout << pi.getParams() << std::endl;
 }
+
+TEST_CASE ("Testing ExpressionData")
+{
+	//Set Paramsr
+	adept::Vector testParams = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+	setParams(testParams, 7, NULL);
+	Vector variables = {10, 11, 12, 13};
+	setVariables(variables);
+
+
+	//3 variales, 4 observed each
+	ExpressionValue data1(1,4); data1 << 1, 2, 3, 4;
+	ExpressionValue data2(1,4); data2 << 5, 6, 7, 8;
+	ExpressionValue data3(1,4); data3 << 10, 11, 12, 14;
+	ExpressionValue* data[3];
+	data[0] = &data1;
+	data[1] = &data2;
+	data[2] = &data3;
+	pi.data = data;
+
+	ExpressionData data1EXPR(0);
+	ExpressionData data2EXPR(1);
+	ExpressionData data3EXPR(2);
+
+	std::cout << data1EXPR.getValue() << std::endl;
+	std::cout << data2EXPR.getValue() << std::endl;
+	std::cout << data3EXPR.getValue() << std::endl;
+}				
