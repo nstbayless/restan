@@ -30,11 +30,12 @@ namespace restan
     void setLossStatement(Statement* s);
     const restan::Statement* getLossStatement();
     void executeStatement();
+    void setVariables(unsigned int numVariables);
     void setVariables(const adept::Vector& variableso);
     void updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex);
     ExpressionValue getVariables(unsigned int startIndex, unsigned int endIndex);
 
-    //TODO: Used for testing purposes
+    void setParams(unsigned int numParameters);
     void setParams(const adept::Vector& parameters, unsigned int discreteIndStart, unsigned int* discreteDomainLengths);
     void setParam(unsigned int index, double value);
     adept::aVector getParams();
@@ -52,6 +53,9 @@ namespace restan
 
     // variable vector
     adept::aVector vars;
+
+    // data vector
+    adept::aVector data;
 
     // statement list
     Statement* statement;

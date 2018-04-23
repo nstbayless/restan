@@ -80,6 +80,13 @@ void restan::Pi::setVariables(const adept::Vector& variables)
   numVariables = variables.size();
 }
 
+void restan::Pi::setVariables(unsigned int numVars) 
+{
+  Vector v(numVars);
+  vars = v;
+  numVariables = numVars;
+}
+
 void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
   // TODO: throw error if index exceeds numVariables
@@ -87,7 +94,13 @@ void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int start
   vars(range(startIndex, endIndex-1)) = vals(0, range(0, size-1));
 }
 
-//Setter only used for testing purposes
+void restan::Pi::setParams(unsigned int numParameters)
+{
+  Vector v(numParameters);
+  params =  v;
+  numParams = numParameters;
+}
+
 void restan::Pi::setParams(const adept::Vector& parameters, unsigned int discreteIndStart, unsigned int* discreteDomLengths)
 {
   params = parameters;
