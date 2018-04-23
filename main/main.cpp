@@ -8,7 +8,7 @@
 #include <adept_arrays.h>
 
 #include "parser/parser.h"
-#include "hmcmc/HMCMC.h"
+#include "hmcmc/GHMCMC.h"
 
 const int N_SAMPLES = 70;
 
@@ -47,9 +47,8 @@ int main(int argc, char** args)
     v0(i) = 0;
   adept::Vector samples[N_SAMPLES];
   restan::pi.setVariables(v0);
-  restan::pi.discreteIndexStart = 2;
-  std::cout << "Beginning HMCMC" << std::endl;
-  restan::HMCMC(restan::getLoss, q0, 0.1, 80, N_SAMPLES, samples);
+  std::cout << "Beginning GHMCMC" << std::endl;
+  restan::GHMCMC(restan::getLoss, q0, 0.1, 80, N_SAMPLES, samples, 1, 1);
   for (int i = 0; i < 50; i++)
     std::cout<<samples[i]<<std::endl;
   restan::parseStanCleanup();

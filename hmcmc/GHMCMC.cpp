@@ -66,6 +66,8 @@ void restan::GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector 
 		{
 			v[i] = aParams[i].value();
 		}
+		//TODO:: Change to pi.output
+		//Retransforms constrained (log or log-odds) parameters
 		*samplesOut = v;
 		//std::cout << "Updated Parameters: " << *samplesOut << std::endl;
 

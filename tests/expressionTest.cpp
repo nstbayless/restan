@@ -132,3 +132,74 @@ TEST_CASE ("Testing simple setter for Params and Variables")
 
 	std::cout << pi.getParams() << std::endl;
 }
+
+TEST_CASE ("Testing ExpressionData")
+{
+	//Set Paramsr
+	adept::Vector testParams = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+	setParams(testParams, 7, NULL);
+	Vector variables = {10, 11, 12, 13};
+	setVariables(variables);
+
+
+	//3 variales, 4 observed each
+	ExpressionValue data1(1,4); data1 << 1, 2, 3, 4;
+	ExpressionValue data2(1,4); data2 << 5, 6, 7, 8;
+	ExpressionValue data3(1,4); data3 << 10, 11, 12, 14;
+	ExpressionValue* data[3];
+	data[0] = &data1;
+	data[1] = &data2;
+	data[2] = &data3;
+	pi.data = data;
+
+	ExpressionData data1EXPR(0);
+	ExpressionData data2EXPR(1);
+	ExpressionData data3EXPR(2);
+
+/*	std::cout << data1EXPR.getValue() << std::endl;
+	std::cout << data2EXPR.getValue() << std::endl;
+	std::cout << data3EXPR.getValue() << std::endl;*/
+}				
+
+TEST_CASE ("Testing transformed parameters")
+{
+	//Set Params
+	adept::Vector testParams = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+	setParams(testParams, 7, NULL);
+
+	std::cout << "Transforming parameters" << std::endl;
+	std::cout << pi.getParams() << std::endl;
+
+
+	ExpressionParameter paramsToTransform1(1, 3); //2, 3
+	restan::Expression* EXPRArray[1];
+	EXPRArray[0] = &paramsToTransform1;
+	ExpressionFunction func1(restan::functions::exp, EXPRArray, 1);
+
+	ExpressionParameter paramsToTransform2(5); // 6
+	restan::Expression* EXPRArray2[1];
+	EXPRArray2[0] = &paramsToTransform2;
+
+	ExpressionFunction func2(restan::functions::exp, EXPRArray2, 1);
+
+	restan::Expression* f1Ptr = &func1;
+	restan::Expression* f2Ptr = &func2;
+	
+
+
+	std::vector<restan::Expression*> outputExpressions = {f1Ptr};
+	outputExpressions.push_back(f2Ptr);
+
+	std::cout << "Reassigning output expression" << std::endl;
+	pi.outputExpressions = outputExpressions;
+
+	std::cout << "Calling pi.output()" <<std::endl;
+	std::vector<double> output = pi.output();
+	std::cout << "Output params: Should be ~7 20 403" << std::endl;
+	for (double param : output)
+	{
+		std::cout << param << " ";
+	}
+	std::cout << std::endl;
+
+}

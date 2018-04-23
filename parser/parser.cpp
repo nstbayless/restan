@@ -68,8 +68,8 @@ auto syntax = R"(
         ExpressionFactor <- FunctionExpression / '(' Expression ')' / Constant / VariableExpression
         FunctionExpression <- Identifier '(' Expression (',' Expression)* ')' / Identifier '(' ')'
         Constant <- < [0-9]+ '.' [0-9]+ > / < [0-9]+ >
-        Parameter <- < [a-zA-Z_]+ >
-        Variable <- < [a-zA-Z_]+ >
+        Parameter <- < [a-zA-Z_][a-zA-Z0-9_]* >
+        Variable <- < [a-zA-Z_][a-zA-Z0-9_]* >
         VariableExpression <- < [a-zA-Z_]+ >
         Distribution <- < [a-zA-Z_]+ >
 
@@ -94,7 +94,14 @@ int vCount = 0;
 int declaring = false;
 
 // fixed lookups
-std::map<std::string, fnExpr> distributionMap = {{"normal", restan::distributions::normal}};
+std::map<std::string, fnExpr> distributionMap = {
+  {"normal", restan::distributions::normal},
+  {"uniform", restan::distributions::uniform},
+  {"unif", restan::distributions::uniform},
+  {"pareto", restan::distributions::pareto},
+  {"exponential", restan::distributions::exponential},
+  {"poisson", restan::distributions::poisson}
+};
 std::map<std::string, fnExpr> functionMap = {{"exp", restan::functions::exp}};
 
 bool declareDiscrete;
@@ -226,7 +233,7 @@ void* eval(const Ast& sv) {
         else
         {
           if (declareDiscrete)
-            throw ParseError("All continous parameters must be declared before discrete parameters.")
+            throw ParseError("All continous parameters must be declared before discrete parameters.");
         }
 
         // read bounds
@@ -272,7 +279,7 @@ void* eval(const Ast& sv) {
             exArrayHeap.push_back(exprs);
             ExpressionFunction* exprFn = new ExpressionFunction(functionMap["exp"], exprs, 1);
             exHeap.push_back(exprFn);
-            ExpressionArithmetic* remapExpression = new ExpressionArithmetic(restan::PLUS, lower, exprFn);
+            remapExpression = new ExpressionArithmetic(restan::PLUS, lower, exprFn);
             remapStatement = new StatementAssign(vCount, remapExpression);
             vCount++;
           }
@@ -286,7 +293,7 @@ void* eval(const Ast& sv) {
             exArrayHeap.push_back(exprs);
             ExpressionFunction* exprFn = new ExpressionFunction(functionMap["exp"], exprs, 1);
             exHeap.push_back(exprFn);
-            ExpressionArithmetic* remapExpression = new ExpressionArithmetic(restan::MINUS, upper, exprFn);
+            remapExpression = new ExpressionArithmetic(restan::MINUS, upper, exprFn);
             remapStatement = new StatementAssign(vCount, remapExpression);
             vCount++;
           }
@@ -310,7 +317,7 @@ void* eval(const Ast& sv) {
             exHeap.push_back(exprRange);
             ExpressionArithmetic* exprMult = new ExpressionArithmetic(restan::TIMES, exprRange, exprDivit);
             exHeap.push_back(exprMult);
-            ExpressionArithmetic* remapExpression = new ExpressionArithmetic(restan::PLUS, lower, exprMult);
+            remapExpression = new ExpressionArithmetic(restan::PLUS, lower, exprMult);
             remapStatement = new StatementAssign(vCount, remapExpression);
             vCount++;
           }
@@ -319,25 +326,34 @@ void* eval(const Ast& sv) {
         {
           if (!useLower || !useUpper)
           {
-            throw ParseError("restan Gibbs sampler does not support countably infinite parameter domains.")
+            throw ParseError("restan Gibbs sampler does not support countably infinite parameter domains.");
           }
           else
           {
             // finite domain
-            int rangeLower = lower.getValue()(0,0).value();
-            int rangeUpper = upper.getValue()(0,0).value();
+            int rangeLower = lower->getValue()(0,0).value();
+            int rangeUpper = upper->getValue()(0,0).value();
             pDiscreteDomain.push_back(rangeUpper - rangeLower);
-            ExpressionParameter* exprPar = new ExpressionParameter(exprPar);
-            exHeap.push_back(exprPar);
-            ExpressionArithmetic* remapExpression = new ExpressionArithmetic(restan::PLUS, lower, exprPar);
-            remapStatement = new StatementAssign(vCount, remapExpression);
-            vCount++;
+            if (rangeLower != 0)
+            {
+              // remap
+              ExpressionParameter* exprPar = new ExpressionParameter(pCount);
+              exHeap.push_back(exprPar);
+              remapExpression = new ExpressionArithmetic(restan::PLUS, lower, exprPar);
+              remapStatement = new StatementAssign(vCount, remapExpression);
+              variableNames[varName] = vCount++;
+            }
+            else
+            {
+              remapExpression = new ExpressionParameter(pCount);
+              parameterNames[varName] = pCount;
+            }
           }
         }
 
         pCount++;
         exHeap.push_back(remapExpression);
-        restan::pi.outputExpressions.pushBack(remapExpression);
+        restan::pi.outputExpressions.push_back(remapExpression);
         if (remapStatement)
           stHeap.push_back(remapStatement);
         return remapStatement;

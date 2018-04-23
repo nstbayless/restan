@@ -48,7 +48,10 @@ void restan::ExpressionParameter::print(int depth) const {
 	int space = 2*depth;
 	while(space--)
 		std::cout << " ";
-	std::cout << "- Expression Parameter: p[" << parameterIndexStart;
+	std::cout << "- Expression Parameter: p";
+  if (parameterIndexStart >= restan::pi.discreteIndexStart)
+    std::cout << "#";
+  std::cout << "[" << parameterIndexStart;
   if (parameterIndexEnd != parameterIndexStart + 1)
     std::cout <<", "<< parameterIndexEnd;
   std::cout << "]\n";
@@ -196,4 +199,23 @@ void restan::ExpressionDereference::print(int depth) const {
   std::cout << "- ExpressionDereference " << std::endl;
   vecEXPR->print(depth+1);
   indEXPR->print(depth+1);
+}
+
+
+//// ExpressionData ////
+restan::ExpressionData::ExpressionData(unsigned int dataIndex)
+:dataIndex(dataIndex)
+{}
+
+//Gets the corresponding vector in Pi
+ExpressionValue restan::ExpressionData::getValue()
+{
+  return pi.getData(dataIndex);
+}
+
+void restan::ExpressionData::print(int depth) const {
+  int space = 2*depth;
+  while(space--)
+    std::cout << " ";
+  std::cout << "- ExpressionData " << std::endl;
 }

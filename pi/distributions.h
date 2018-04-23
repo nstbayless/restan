@@ -10,10 +10,10 @@ namespace restan
   namespace distributions
   {
   	class DistributionException : public std::exception
-	{
-	public:
-	    DistributionException() {}
-	};
+  	{
+  	public:
+  	    DistributionException() {}
+  	};
     ExpressionValue normal(ExpressionValue* exps, unsigned int); // x, mu, sigma
     ExpressionValue uniform(ExpressionValue* exps, unsigned int); // x
     ExpressionValue pareto(ExpressionValue* exps, unsigned int); // x, xm, alpha

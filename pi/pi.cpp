@@ -23,7 +23,7 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   vars(0) = 0;
 
   // TODO: throw error if parameters.size() is not equal to numParams
-  if (parameters.size() != getNumParams() )
+  if (parameters.size() != numParams)
   {
      throw PiError("params.size() is not numParams in Pi::getLoss:28");
   }
@@ -84,7 +84,7 @@ void restan::Pi::setVariables(const adept::Vector& variables)
   numVariables = variables.size();
 }
 
-void restan::Pi::setVariables(unsigned int numVars) 
+void restan::Pi::setVariables(unsigned int numVars)
 {
   Vector v(numVars);
   vars = v;
@@ -93,7 +93,7 @@ void restan::Pi::setVariables(unsigned int numVars)
 
 void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
-  if (endIndex > getNumVariables())
+  if (endIndex > numVariables )
   {
      throw PiError("endIndex exceeds numVariables in restan::updateVariables");
   }
@@ -105,6 +105,8 @@ void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int start
 void restan::Pi::setParams(unsigned int numParameters)
 {
   Vector v(numParameters);
+  for (int i = 0; i < numParameters; i++)
+    v[i] = 0;
   params =  v;
   numParams = numParameters;
 }
@@ -125,16 +127,6 @@ void restan::Pi::setParam(unsigned int index, double value)
   }
 
   params(index) = value;
-}
-
-unsigned int restan::Pi::getNumParams() 
-{
-  return numParams;
-}
-
-unsigned int restan::Pi::getNumVariables() 
-{
-  return numVariables;
 }
 
 
@@ -158,7 +150,7 @@ void restan::setParams(const adept::Vector& parameters, unsigned int discreteInd
 
 void restan::setVariables(const adept::Vector& variables)  //TODO: check
 {
-  if (variables.size() > pi.getNumVariables() )
+  if (variables.size() > pi.numVariables )
   {
      throw PiError("index exceeds numVariables in Pi::setVariables");
   }
@@ -168,10 +160,35 @@ void restan::setVariables(const adept::Vector& variables)  //TODO: check
 
 void restan::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
-  if (endIndex > pi.getNumVariables() )
+  if (endIndex > pi.numVariables)
   {
      throw PiError("endIndex exceeds numVariables in Pi::updateVariables");
   }
   // TODO: throw error if index exceeds numVariables
   pi.updateVariables(vals, startIndex, endIndex);
+}
+
+// Retransforms the parameters that have been constrained to log or log-odds space
+std::vector<double> restan::Pi::output()
+{
+  std::vector<double> outputParams = {};
+  int i = 0;
+  for (Expression* exprP : pi.outputExpressions)
+  {
+    ExpressionValue outputParamEXPR = exprP->getValue();
+    std::cout << outputParamEXPR << std::endl;
+    unsigned int numParams = outputParamEXPR.size();
+    for (int j = 0; j < numParams; j++)
+    {
+      outputParams.push_back( outputParamEXPR(0, j).value() );
+      i++;
+    }
+  }
+  return outputParams;
+}
+
+// TODO:: return smarter
+ExpressionValue restan::Pi::getData(unsigned int dataIndex)
+{
+  return *(pi.data[dataIndex]);
 }
