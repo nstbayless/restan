@@ -23,22 +23,23 @@ void HMCMCUpdate(GradValue (*u)(const adept::Vector&), Vector q, const double ep
 
 
 bool randomized = false;
-void restan::HMCMC(GradValue (*u)(const adept::Vector&), const Vector q0, double epsilon, unsigned int L, unsigned int samples, Vector* samplesOut)
+void restan::HMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector q0, double epsilon, unsigned int L, unsigned int numSamples, std::vector<double>* samples)
 { 
   if (!randomized)
     srand(time(0));
   randomized = true;
   Vector q(q0);
-  
+  Vector sampleOut;
   // generate samples (TODO: warmup):
-  while (samples > 0)
+  while (numSamples > 0)
   {
     try
     {
-      HMCMCUpdate(u, q, epsilon, L, samplesOut);
-      q = *samplesOut;
-      samplesOut++;
-      samples--;
+      HMCMCUpdate(u, q, epsilon, L, &sampleOut);
+      q = sampleOut;
+      *samples = pi.output();
+      samples++;
+      numSamples--;
     }
     catch (const SampleRejected&)
     {

@@ -1,10 +1,13 @@
 #include <adept.h>
 #include <adept_arrays.h>
+#include "utils/utils.h"
+
 #include "pi/pi.h"
 #include "pi/expressionTypes.h"
 #include "pi/statementTypes.h"
 #include "pi/distributions.h"
 #include "pi/functions.h"
+
 
 #include "hmcmc/GHMCMC.h"
 
@@ -45,13 +48,20 @@ void lambdaFromNormalTest()
 	pi.setLossStatement(&sa);
 
 
-	int numSamples = 8000;
-	Vector samples[numSamples];
+	//Setting OutputExpressions
+	ExpressionParameter p0(0);
+	std::vector<restan::Expression*> outputExpressions;
+	outputExpressions.push_back(&p0);
+	pi.outputExpressions = outputExpressions;
+
+	int numSamples = 100;
+	std::vector<double> samples[numSamples];
 	restan::HMCMC(getLoss, parameters, 0.1, 25, numSamples, samples);
+	
 	double average = 0;
   	for (int i = 0; i < numSamples; i++) {
   		average += samples[i][0];
-		//std::cout<<samples[i]<<std::endl;
+		printVector(samples[i]);
   	}
   	std::cout << "Average: " << average/numSamples << std::endl;
 }
@@ -61,6 +71,7 @@ void lambdaFromNormalTest()
 	k = 2Z + 3
 	k ~ Poisson(lamda)
 */
+
 void discreteTest()
 {
 	std::cout << "Starting discreteTest" << std::endl;
@@ -132,9 +143,17 @@ void discreteTest()
 	std::cout << "Setting Loss Statement " << std::endl;
 	pi.setLossStatement(&piStatement);
 
+	//Setting OutputExpressions
+	ExpressionParameter p0(0);
+	ExpressionParameter p1(1);
+	std::vector<restan::Expression*> outputExpressions;
+	outputExpressions.push_back(&p0);
+	outputExpressions.push_back(&p1);
+	pi.outputExpressions = outputExpressions;
+
 
 	int numSamples = 1000;
-	Vector samples[numSamples];
+	std::vector<double> samples[numSamples];
 
 
 	std::cout << pi.numParams << std::endl;
@@ -144,11 +163,11 @@ void discreteTest()
 	double averageLambda = 0;
 	int averageDiscrete = 0;
   	for (int i = 0; i < numSamples; i++) {
-  		averageLambda += samples[i](0);
-  		averageDiscrete += samples[i](1);
-		std::cout<<samples[i]<<std::endl;
-
+  		averageLambda += samples[i][0];
+  		averageDiscrete += samples[i][1];
+		printVector(samples[i]);
   	}
+  	
   	std::cout << averageLambda/numSamples << std::endl;
 	std::cout << averageDiscrete/numSamples << std::endl;
   	//Gibbs sample Z
@@ -165,7 +184,7 @@ void dataTest()
 int main(int argc, char** args)
 {
 	//lambdaFromNormalTest();
-	//discreteTest();
-	dataTest();
+	discreteTest();
+	//dataTest();
   	return 0;
 }

@@ -14,9 +14,9 @@ namespace restan
   // L: hyperparameter (leapfrog step count)
   // samples: number of samples
   // samplesOut: returns an array of samples
-  // epoch : the number of cycles of a leap frog step and gibbs sampling before taking a sample
-  // L2: the number of samples each discrete coordinate is sampled
-  void GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector q0, double epsilon, unsigned int L, unsigned int samples, adept::Vector* samplesOut, unsigned int epoch, unsigned int L2);
+  // epoch : how long it cycles between HMCMC and gibbs before choosing a sample
+  // L2: how long it iterates gibbs sampling
+  void GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector q0, double epsilon, unsigned int L, unsigned int numSamples, std::vector<double>* samplesOut, unsigned int epoch, unsigned int L2);
 }
 
 #endif

@@ -21,14 +21,11 @@ int SampleDiscrete(double* unnormalizedProb, unsigned int size, double Z)
 	return -1;
 }
 
-void restan::GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector q0, double epsilon, unsigned int L, unsigned int samples, adept::Vector* samplesOut, unsigned int epoch, unsigned int L2)
+void restan::GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector q0, double epsilon, unsigned int L, unsigned int numSamples, std::vector<double>* samplesOut, unsigned int epoch, unsigned int L2)
 {
 
-	while (samples > 0)
+	while (numSamples > 0)
 	{
-		//Run one sample of HMCMC
-		restan::HMCMC(u, q0, epsilon, L, 1, samplesOut);
-
 		//Update one discrete parameter
 		unsigned int numParams = pi.numParams;
 		unsigned int discreteIndexStart = pi.discreteIndexStart;
@@ -44,12 +41,19 @@ void restan::GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector 
 
 		//Update one discrete parameter
 		//std::cout << "Rand Discrete Index: " << randDiscreteIndex << " Domain Size: " << randDiscreteDomainSize << std::endl;
-
+		Vector currentParams(q0);
+		//Make Samples include discrete variables
+		adept::aVector aParams = pi.getParams();
+		for (int i = 0; i < aParams.size(); i++)
+		{
+			currentParams[i] = aParams[i].value();
+		}
 		double unnormalizedProb[randDiscreteDomainSize];
 		double Z = 0;
 		for (int i = 0; i < randDiscreteDomainSize; i++) {
 			pi.setParam(randDiscreteParamIndex, i);
-			unnormalizedProb[i] = exp(-u(*samplesOut).first);
+
+			unnormalizedProb[i] = exp(-u(currentParams).first);
 			Z += unnormalizedProb[i];
 			//std::cout << "unnormalizedProb:[ " << i << "] : " << unnormalizedProb[i] << std::endl;
 		}
@@ -59,20 +63,14 @@ void restan::GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector 
 		//Sample and update discrete parameter
 		pi.setParam(randDiscreteParamIndex, newDiscreteDomainIndex);
 
-		//Make Samples include discrete variables
-		adept::aVector aParams = pi.getParams();
-		Vector v(aParams.size());
-		for (int i = 0; i < aParams.size(); i++)
-		{
-			v[i] = aParams[i].value();
-		}
+
 		//TODO:: Change to pi.output
 		//Retransforms constrained (log or log-odds) parameters
-		*samplesOut = v;
+		*samplesOut = pi.output();
 		//std::cout << "Updated Parameters: " << *samplesOut << std::endl;
 
 		//Generate next sample
-		samples--;
+		numSamples--;
 		samplesOut++;
 	}
 }

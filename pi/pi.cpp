@@ -176,7 +176,7 @@ std::vector<double> restan::Pi::output()
   for (Expression* exprP : pi.outputExpressions)
   {
     ExpressionValue outputParamEXPR = exprP->getValue();
-    std::cout << outputParamEXPR << std::endl;
+    //std::cout << outputParamEXPR << std::endl;
     unsigned int numParams = outputParamEXPR.size();
     for (int j = 0; j < numParams; j++)
     {
