@@ -133,22 +133,22 @@ void restan::updateVariables(const ExpressionValue& vals, unsigned int startInde
 }
 
 // Retransforms the parameters that have been constrained to log or log-odds space
-adept::Vector restan::Pi::output()
+std::vector<double> restan::Pi::output()
 {
-  Vector v(pi.numParams);
+  std::vector<double> outputParams = {};
   int i = 0;
-
   for (Expression* exprP : pi.outputExpressions)
   { 
     ExpressionValue outputParamEXPR = exprP->getValue();
+    std::cout << outputParamEXPR << std::endl;
     unsigned int numParams = outputParamEXPR.size();
     for (int j = 0; j < numParams; j++) 
     {
-      v[i] = outputParamEXPR(0, j).value();
+      outputParams.push_back( outputParamEXPR(0, j).value() );
       i++;
     }
   }
-  return v;
+  return outputParams;
 }
 
 // TODO:: return smarter

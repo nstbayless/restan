@@ -40,7 +40,7 @@ namespace restan
     void setParam(unsigned int index, double value);
     ExpressionValue getData(unsigned int variableDataIndex);
     adept::aVector getParams();
-    adept::Vector output();
+    std::vector<double> output();
     unsigned int discreteIndexStart;
     unsigned int* discreteDomainLengths;
     unsigned int numParams = 0;

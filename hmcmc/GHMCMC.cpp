@@ -60,15 +60,15 @@ void restan::GHMCMC(restan::GradValue (*u)(const adept::Vector&), adept::Vector 
 		pi.setParam(randDiscreteParamIndex, newDiscreteDomainIndex);
 
 		//Make Samples include discrete variables
-/*		adept::aVector aParams = pi.getParams();
+		adept::aVector aParams = pi.getParams();
 		Vector v(aParams.size());
 		for (int i = 0; i < aParams.size(); i++)
 		{
 			v[i] = aParams[i].value();
-		}*/
-
+		}
+		//TODO:: Change to pi.output
 		//Retransforms constrained (log or log-odds) parameters
-		*samplesOut = pi.output();
+		*samplesOut = v;
 		//std::cout << "Updated Parameters: " << *samplesOut << std::endl;
 
 		//Generate next sample

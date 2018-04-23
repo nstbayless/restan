@@ -9,7 +9,7 @@
 #include "pi/expressionTypes.h"
 #include "pi/statementTypes.h"
 #include "pi/distributions.h"
-
+#include "pi/functions.h"
 
 using namespace restan;
 using namespace adept;

@@ -156,7 +156,50 @@ TEST_CASE ("Testing ExpressionData")
 	ExpressionData data2EXPR(1);
 	ExpressionData data3EXPR(2);
 
-	std::cout << data1EXPR.getValue() << std::endl;
+/*	std::cout << data1EXPR.getValue() << std::endl;
 	std::cout << data2EXPR.getValue() << std::endl;
-	std::cout << data3EXPR.getValue() << std::endl;
+	std::cout << data3EXPR.getValue() << std::endl;*/
 }				
+
+TEST_CASE ("Testing transformed parameters")
+{
+	//Set Params
+	adept::Vector testParams = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+	setParams(testParams, 7, NULL);
+
+	std::cout << "Transforming parameters" << std::endl;
+	std::cout << pi.getParams() << std::endl;
+
+
+	ExpressionParameter paramsToTransform1(1, 3); //2, 3
+	restan::Expression* EXPRArray[1];
+	EXPRArray[0] = &paramsToTransform1;
+	ExpressionFunction func1(restan::functions::exp, EXPRArray, 1);
+
+	ExpressionParameter paramsToTransform2(5); // 6
+	restan::Expression* EXPRArray2[1];
+	EXPRArray2[0] = &paramsToTransform2;
+
+	ExpressionFunction func2(restan::functions::exp, EXPRArray2, 1);
+
+	restan::Expression* f1Ptr = &func1;
+	restan::Expression* f2Ptr = &func2;
+	
+
+
+	std::vector<restan::Expression*> outputExpressions = {f1Ptr};
+	outputExpressions.push_back(f2Ptr);
+
+	std::cout << "Reassigning output expression" << std::endl;
+	pi.outputExpressions = outputExpressions;
+
+	std::cout << "Calling pi.output()" <<std::endl;
+	std::vector<double> output = pi.output();
+	std::cout << "Output params: Should be ~7 20 403" << std::endl;
+	for (double param : output)
+	{
+		std::cout << param << " ";
+	}
+	std::cout << std::endl;
+
+}
