@@ -40,6 +40,7 @@ namespace restan
     void setParam(unsigned int index, double value);
     ExpressionValue getData(unsigned int variableDataIndex);
     adept::aVector getParams();
+    adept::Vector output();
     unsigned int discreteIndexStart;
     unsigned int* discreteDomainLengths;
     unsigned int numParams = 0;
@@ -47,6 +48,9 @@ namespace restan
     unsigned int numObservedData = 0;
     // pointer to pointer table of ExpressionValues
     ExpressionValue** data;
+
+    // Converts our constrainted parameters
+    std::vector<Expression*> outputExpressions;
   private:
     //// these variables change from evaluation to evaluation (getLoss) ////
 

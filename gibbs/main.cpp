@@ -155,15 +155,17 @@ void discreteTest()
 
 }
 
-void discreteDataTest()
+
+void dataTest()
 {
-	
+
 }
 
 
 int main(int argc, char** args)
 {
 	//lambdaFromNormalTest();
-	discreteTest();
+	//discreteTest();
+	dataTest();
   	return 0;
 }
