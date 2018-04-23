@@ -25,8 +25,8 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   // TODO: throw error if parameters.size() is not equal to numParams
 
   // update parameters
-  params = parameters;
-
+  params(range(0, discreteIndexStart - 1)) = parameters(range(0, discreteIndexStart - 1));
+  //params = parameters;
   // begin autodiff
   stack.new_recording();
 
@@ -38,7 +38,7 @@ GradValue restan::Pi::getLoss(const adept::Vector& parameters)
   stack.compute_adjoint();
 
   // return value
-  return GradValue(vars(0).value(), params.get_gradient()(range(0, discreteIndexStart - 1)));
+  return GradValue(vars(0).value(), params.get_gradient());
 }
 
 ExpressionValue restan::Pi::getParams(unsigned int startIndex, unsigned int endIndex)
@@ -80,6 +80,13 @@ void restan::Pi::setVariables(const adept::Vector& variables)
   numVariables = variables.size();
 }
 
+void restan::Pi::setVariables(unsigned int numVars) 
+{
+  Vector v(numVars);
+  vars = v;
+  numVariables = numVars;
+}
+
 void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int startIndex, unsigned int endIndex)
 {
   // TODO: throw error if index exceeds numVariables
@@ -87,7 +94,13 @@ void restan::Pi::updateVariables(const ExpressionValue& vals, unsigned int start
   vars(range(startIndex, endIndex-1)) = vals(0, range(0, size-1));
 }
 
-//Setter only used for testing purposes
+void restan::Pi::setParams(unsigned int numParameters)
+{
+  Vector v(numParameters);
+  params =  v;
+  numParams = numParameters;
+}
+
 void restan::Pi::setParams(const adept::Vector& parameters, unsigned int discreteIndStart, unsigned int* discreteDomLengths)
 {
   params = parameters;

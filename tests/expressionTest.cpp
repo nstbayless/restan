@@ -124,3 +124,11 @@ TEST_CASE ("ExpressionDereference testing")
 
 	REQUIRE( derefEXPR.getValue()(0,0).value() == 3);
 }
+
+TEST_CASE ("Testing simple setter for Params and Variables")
+{
+	pi.setParams(6);
+	pi.setVariables(4);
+
+	std::cout << pi.getParams() << std::endl;
+}

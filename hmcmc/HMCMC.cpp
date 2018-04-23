@@ -11,6 +11,7 @@
 #include <adept_arrays.h>
 
 #include "HMCMC.h"
+#include "pi/pi.h"
 
 using namespace restan;
 using namespace std;
@@ -54,7 +55,7 @@ uniform_real_distribution<double> stdunif(0, 1.0);
 void HMCMCUpdate(GradValue (*u)(const adept::Vector&), Vector q, const double epsilon, const unsigned int L, Vector* sampleOut)
 {
   unsigned int d = q.size();
-  
+  unsigned int contIndexEnd = pi.discreteIndexStart -1;
   // momentum resample
   Vector p(d);
   for (int i = 0; i < d; i++)
@@ -68,11 +69,11 @@ void HMCMCUpdate(GradValue (*u)(const adept::Vector&), Vector q, const double ep
   
   for (int i = 0; i < L; i++)
   {
-    q += p * epsilon;
+    q(range(0, contIndexEnd)) += p(range(0, contIndexEnd)) * epsilon;
     p -= epsilon * u(q).second;
   }
   
-  q += p * epsilon / 2;
+  q(range(0, contIndexEnd)) += p(range(0, contIndexEnd)) * epsilon / 2;
   
   GradValue uqEnd;
   uqEnd = u(q); 
