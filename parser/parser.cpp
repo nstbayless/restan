@@ -4,6 +4,7 @@
 #include "pi/expressionTypes.h"
 #include "pi/statementTypes.h"
 #include "pi/distributions.h"
+#include "pi/functions.h"
 
 #include <adept.h>
 #include <adept_arrays.h>
@@ -46,7 +47,7 @@ auto syntax = R"(
 
         # Declarations
         DeclarationAssignment <- Declaration AssignOp Expression / Declaration
-        Declaration <- Type Identifier ### / Type '<' Bound (',' Bound)* '> Identifier
+        Declaration <- Type Identifier / Type '<' Bound (',' Bound)* '>' Identifier
         Type <- 'int' / 'real' / 'vector' / 'matrix'
         Bound <- BoundType '=' Constant
         BoundType <- 'lower' / 'upper'
@@ -66,7 +67,7 @@ auto syntax = R"(
         FactorOp <- '*' / '/'
         ExpressionFactor <- FunctionExpression / '(' Expression ')' / Constant / VariableExpression
         FunctionExpression <- Identifier '(' Expression (',' Expression)* ')' / Identifier '(' ')'
-        Constant <- < [0-9]+ '.' [0-9]+ > / < [0-9]+ >
+        Constant <- < [0-9]+ >
         Parameter <- < [a-zA-Z_]+ >
         Variable <- < [a-zA-Z_]+ >
         VariableExpression <- < [a-zA-Z_]+ >
@@ -92,7 +93,7 @@ int declaring = false;
 
 // fixed lookups
 std::map<std::string, fnExpr> distributionMap = {{"normal", restan::distributions::normal}};
-std::map<std::string, fnExpr> functionMap;
+std::map<std::string, fnExpr> functionMap = {{"exp", restan::functions::exp}};
 
 // memoize
 void* memoize(const Ast& sv, std::string production, void* proposed, bool dispose = false)
@@ -107,6 +108,9 @@ void* eval(const Ast& sv) {
   {
     std::cout<<"took root production\n";
     std::vector<restan::Statement*> topLevelBlocks;
+    // clear output Expressions
+    // restan::pi.outputExpressions.resize(0);
+
     // read parameters block
     if (ast.nodes[1]->name != "ParametersString")
     {
@@ -132,12 +136,14 @@ void* eval(const Ast& sv) {
     StatementBody* lossStatement = new StatementBody(lossStatementArray, topLevelBlocks.size());
     stArrayHeap.push_back(lossStatementArray);
     stHeap.push_back(lossStatement);
+
+    // setup pi
     pi.setLossStatement(lossStatement);
     pi.numParams = pCount;
     pi.numVariables = vCount;
     pi.discreteIndexStart = pCount;
-	pi.setParams(pi.numParams);
-	pi.setVariables(pi.numVariables);
+  	pi.setParams(pi.numParams);
+  	pi.setVariables(pi.numVariables);
   };
   if (ast.name == "OptionalTransformedParameters" || ast.name == "OptionalParameters")
   {
@@ -147,7 +153,7 @@ void* eval(const Ast& sv) {
     for (int i = 1; i < sv.nodes.size(); i ++)
     {
       restan::Statement* s = (restan::Statement*)eval(*ast.nodes[i]);
-      if (ast.nodes[i]->name == "Declaration")
+      if (ast.nodes[i]->name == "Declaration" && declaring != 1)
       {
         delete(s);
         continue;
@@ -191,15 +197,109 @@ void* eval(const Ast& sv) {
         break;
       case 1: // parameter
       {
-        unsigned int pIndex = parameterNames[varName] = pCount++;
         // find bounds:
-        for (int i = 1; i < sv.nodes.size() - 1; i++)
+        unsigned int pIndex;
+        bool useLower = false;
+        bool useUpper = false;
+        Expression* upper;
+        Expression* lower;
+        bool useDiscrete = false;
+        if (sv.nodes[1]->name == "Bound")
         {
-          auto& bound = *sv.nodes[i];
-          auto& boundType = *bound.nodes[0];
-          auto& boundValue = *bound.nodes[1];
+          for (int i = 1; i < sv.nodes.size() - 1; i++)
+          {
+            auto& bound = *sv.nodes[i];
+            std::string boundType = trim(bound.nodes[0]->token);
+            Expression* boundValue = (Expression*)eval(*bound.nodes[1]);
+
+            if (boundType == "lower")
+            {
+              useLower = true;
+              lower = boundValue;
+            }
+            if (boundType == "upper")
+            {
+              useUpper = true;
+              upper = boundValue;
+            }
+          }
         }
-        return new unsigned int(pIndex);
+
+        // determine bounds remap:
+        restan::StatementAssign* remapStatement = nullptr;
+        restan::Expression* remapExpression;
+        if (!useDiscrete)
+        {
+          if (!useUpper && !useLower)
+          {
+            // raw parameter
+            parameterNames[varName] = pCount;
+            remapExpression = new ExpressionParameter(pCount);
+          }
+          if (useLower && !useUpper)
+          {
+            // lower-bound
+            variableNames[varName] = vCount;
+            Expression** exprs = new Expression*[1];
+            exprs[0] = new ExpressionParameter(pCount);
+            exHeap.push_back(exprs[0]);
+            exArrayHeap.push_back(exprs);
+            ExpressionFunction* exprFn = new ExpressionFunction(functionMap["exp"], exprs, 1);
+            exHeap.push_back(exprFn);
+            ExpressionArithmetic* remapExpression = new ExpressionArithmetic(restan::PLUS, lower, exprFn);
+            remapStatement = new StatementAssign(vCount, remapExpression);
+            vCount++;
+          }
+          if (!useLower && useUpper)
+          {
+            // upper-bound
+            variableNames[varName] = vCount;
+            Expression** exprs = new Expression*[1];
+            exprs[0] = new ExpressionParameter(pCount);
+            exHeap.push_back(exprs[0]);
+            exArrayHeap.push_back(exprs);
+            ExpressionFunction* exprFn = new ExpressionFunction(functionMap["exp"], exprs, 1);
+            exHeap.push_back(exprFn);
+            ExpressionArithmetic* remapExpression = new ExpressionArithmetic(restan::MINUS, upper, exprFn);
+            remapStatement = new StatementAssign(vCount, remapExpression);
+            vCount++;
+          }
+          if (useLower && useUpper)
+          {
+            // log-odds transform
+            variableNames[varName] = vCount;
+            Expression** exprs = new Expression*[1];
+            ExpressionConstant* oneConstant = new ExpressionConstant(1);
+            exHeap.push_back(oneConstant);
+            exprs[0] = new ExpressionParameter(pCount);
+            exHeap.push_back(exprs[0]);
+            exArrayHeap.push_back(exprs);
+            ExpressionFunction* exprFn = new ExpressionFunction(functionMap["exp"], exprs, 1);
+            exHeap.push_back(exprFn);
+            ExpressionArithmetic* exprPlusit = new ExpressionArithmetic(restan::PLUS, oneConstant, exprFn);
+            exHeap.push_back(exprPlusit);
+            ExpressionArithmetic* exprDivit = new ExpressionArithmetic(restan::DIV, exprFn, exprPlusit);
+            exHeap.push_back(exprDivit);
+            ExpressionArithmetic* exprRange = new ExpressionArithmetic(restan::MINUS, upper, lower);
+            exHeap.push_back(exprRange);
+            ExpressionArithmetic* exprMult = new ExpressionArithmetic(restan::TIMES, exprRange, exprDivit);
+            exHeap.push_back(exprMult);
+            ExpressionArithmetic* remapExpression = new ExpressionArithmetic(restan::PLUS, lower, exprMult);
+            remapStatement = new StatementAssign(vCount, remapExpression);
+            vCount++;
+          }
+        }
+        else
+        {
+          // TODO: discrete remapping...
+        }
+
+        pCount++;
+        exHeap.push_back(remapExpression);
+        //restan::pi.outputExpressions.pushBack(remapExpression);
+        if (remapStatement)
+          stHeap.push_back(remapStatement);
+        return remapStatement;
       }
       case 2: // variable
         return new unsigned int(variableNames[varName] = vCount++);
@@ -451,9 +551,7 @@ void* eval(const Ast& sv) {
 
   if (ast.name == "Constant")
   {
-	double constant;
-	std::stringstream strConst(sv.token); strConst >> constant;
-    Expression* expr = new ExpressionConstant( constant );
+    Expression* expr = new ExpressionConstant(stoi(sv.token, nullptr, 10));
     exHeap.push_back(expr);
     return memoize(sv, "Constant", expr, true);
   };

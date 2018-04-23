@@ -8,7 +8,7 @@ namespace restan
   namespace functions
   {
   	class FunctionException : public std::exception
-	  {  
+	  {
 	  public:
 	    FunctionException() {}
 	  };
