@@ -5,8 +5,8 @@ parameters
 }
 transformed parameters
 {
-  real zeta <- beta * 3;
-  real alpha <- zeta + 4;
+  real zeta <- beta * (3 + 5/3);
+  real alpha <- zeta + 4 / (beta * beta + 1);
 }
 model
 {

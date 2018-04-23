@@ -46,9 +46,8 @@ auto syntax = R"(
 
         # Declarations
         DeclarationAssignment <- Declaration AssignOp Expression / Declaration
-        Declaration <- Type Variable ### / Type '<' BoundsList Identifier
+        Declaration <- Type Identifier ### / Type '<' Bound (',' Bound)* '> Identifier
         Type <- 'int' / 'real' / 'vector' / 'matrix'
-        BoundsList <- Bound ',' BoundsList / Bound '>'
         Bound <- BoundType '=' Constant
         BoundType <- 'lower' / 'upper'
 
@@ -96,71 +95,10 @@ std::map<std::string, fnExpr> distributionMap = {{"normal", restan::distribution
 std::map<std::string, fnExpr> functionMap;
 
 // memoize
-std::map<std::string, void*> memoizedPointers;
 void* memoize(const Ast& sv, std::string production, void* proposed, bool dispose = false)
 {
   return proposed;
-  auto lookup = std::string(production) + " >~!~< token-(\"" + sv.token + std::string("\")");
-  std::cout << lookup << std::endl << " (proposed pointer:" << proposed << ")" << std::endl;
-  if (memoizedPointers.count(lookup) > 0)
-  {
-    // use pre-existing
-    if (dispose)
-      delete (char*)proposed;
-    std::cout << "  found in cache!" << std::endl;
-    return memoizedPointers[lookup];
-  }
-  else
-  {
-    // memoize and return
-    memoizedPointers[lookup] = proposed;
-    std::cout << "  memoized for future use." << std::endl;
-    return proposed;
-  }
 };
-
-void fillNames(std::string& stanCode, std::map<std::string, unsigned int>& parameterNames, int& pcount, std::map<std::string, unsigned int>& variableNames, int& vcount)
-{
-  std::regex varBlockRegex("parameters\\s*\\{([^\\}])*\\}");
-  std::regex varNamesRegex("(real|int|vector|matrix)\\s*(<[^>]*>)?\\s*([a-zA-Z0-9_]+)");
-  std::match_results<std::string::const_iterator> cdmatch;
-  std::string::difference_type searchVarIndex = 0;
-  if (std::regex_search(stanCode, cdmatch, varBlockRegex))
-  {
-    std::match_results<std::string::const_iterator> matchParams;
-    searchVarIndex = cdmatch.position() + cdmatch.length();
-
-    auto searchIndex = cdmatch.position(1);
-
-    while (true)
-    {
-	  std::string strFind = stanCode.substr(searchIndex, searchVarIndex - searchIndex);
-      if (std::regex_search(strFind, matchParams, varNamesRegex))
-      {
-        std::string param = matchParams.str(2);
-        parameterNames[param] = pcount++;
-        searchVarIndex = matchParams.position(matchParams.size());
-      }
-      else
-        break;
-    }
-
-  }
-
-  std::match_results<std::string::const_iterator> matchVars;
-  while (true)
-  {
-	std::string strFind = stanCode.substr(searchVarIndex);
-    if (std::regex_search(strFind, matchVars, varNamesRegex))
-    {
-      std::string param = matchVars.str(2);
-      parameterNames[param] = vcount++;
-      searchVarIndex = matchVars.position(matchVars.size());
-    }
-    else
-      break;
-  }
-}
 
 void* eval(const Ast& sv) {
   std::cout<<sv.name<<std::endl;
@@ -169,14 +107,17 @@ void* eval(const Ast& sv) {
   {
     std::cout<<"took root production\n";
     std::vector<restan::Statement*> topLevelBlocks;
-    declaring = 1; // parameters
     // read parameters block
-    eval(*ast.nodes[1]);
-    declaring = 2; // variables
+    if (ast.nodes[1]->name != "ParametersString")
+    {
+      declaring = 1; // parameters
+      topLevelBlocks.push_back((restan::Statement*)eval(*ast.nodes[1]));
+    }
 
     // read transformed parameters block
     if (ast.nodes[2]->name != "ParametersString")
     {
+      declaring = 2; // variables
       topLevelBlocks.push_back((restan::Statement*)eval(*ast.nodes[2]));
     }
 
@@ -198,15 +139,7 @@ void* eval(const Ast& sv) {
 	pi.setParams(pi.numParams);
 	pi.setVariables(pi.numVariables);
   };
-  if (ast.name == "OptionalParameters")
-  {
-    for (int i = 1; i < sv.nodes.size(); i ++)
-    {
-      unsigned int *_idx = (unsigned int*) eval(*ast.nodes[i]);
-      delete(_idx);
-    }
-  };
-  if (ast.name == "OptionalTransformedParameters")
+  if (ast.name == "OptionalTransformedParameters" || ast.name == "OptionalParameters")
   {
     restan::Statement** sl = new restan::Statement*[sv.nodes.size()+1];
     restan::Statement** slo = sl;
@@ -257,7 +190,17 @@ void* eval(const Ast& sv) {
         throw ParseError("Cannot declare here");
         break;
       case 1: // parameter
-        return new unsigned int(parameterNames[varName] = pCount++);
+      {
+        unsigned int pIndex = parameterNames[varName] = pCount++;
+        // find bounds:
+        for (int i = 1; i < sv.nodes.size() - 1; i++)
+        {
+          auto& bound = *sv.nodes[i];
+          auto& boundType = *bound.nodes[0];
+          auto& boundValue = *bound.nodes[1];
+        }
+        return new unsigned int(pIndex);
+      }
       case 2: // variable
         return new unsigned int(variableNames[varName] = vCount++);
     }
