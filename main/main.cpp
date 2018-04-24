@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 
 #include <adept.h>
 #include <adept_arrays.h>
@@ -45,7 +46,7 @@ int main(int argc, char* argv[])
       ("ast", "print abstract syntax", cxxopts::value<bool>(print_ast), "PRINT_AST")
 			;
 
-		options.parse_positional({"program", "data", "samples"});
+		options.parse_positional({"program", "samples", "data"});
 
 		auto result = options.parse(argc, argv);
 
@@ -96,8 +97,27 @@ int main(int argc, char* argv[])
   }
   std::cout << "Beginning GHMCMC" << std::endl;
   restan::GHMCMC(restan::getLoss, q0, 0.01, 80, N_SAMPLES, samples, 1, 1);
-  for (int i = 0; i < 50; i++)
+	long double sum = 0; long count = 0;
+	long double mean = -1; long double stdev = -1;
+	long double sumDiff = 0;
+	std::vector<double> data;
+  for (int i = 0; i < N_SAMPLES; i++) {
     printVector(samples[i]);
+		data.push_back(samples[i][0]);
+    sum += data[i];
+		count++;
+	}
+	mean = sum / count;
+  for (int i = 0; i < N_SAMPLES; i++) {
+		sumDiff += (data[i]-mean)*(data[i]-mean);
+	}
+	stdev = sumDiff / (count-1);
+
+	if (print_mean)
+		std::cout << "Mean: " << mean << std::endl;
+	if (print_stdev)
+		std::cout << "Standard Deviation: " << stdev << std::endl;
+
   restan::parseStanCleanup();
   return 0;
 }
