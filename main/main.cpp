@@ -7,20 +7,58 @@
 #include <adept.h>
 #include <adept_arrays.h>
 
+#include <cxxopts.hpp>
+
 #include "utils/utils.h"
 #include "parser/parser.h"
 #include "hmcmc/GHMCMC.h"
 #include "data/parseData.h"
 
-const int N_SAMPLES = 70;
+int N_SAMPLES = 70;
 
-int main(int argc, char** args)
+int main(int argc, char* argv[])
 {
-  std::string filename = args[1];
+
+  std::string filename;
+	std::string datafilename;
+	bool print_mean = false;
+	bool print_stdev = false;
+	bool print_ast = false;
+
+	try {
+
+		cxxopts::Options options(argv[0], " - example command line options");
+
+		std::cout << argv[0];
+
+    options
+      .positional_help("[optional args]")
+			.show_positional_help();
+
+		options
+      .add_options()
+      ("p,program", "stan program", cxxopts::value<std::string>(filename), "STAN_PROGRAM")
+      ("d,data", "data input", cxxopts::value<std::string>(datafilename), "DATA_CSV")
+      ("s,samples", "number of samples", cxxopts::value<int>(N_SAMPLES), "SAMPLES")
+      ("m,mean", "print mean", cxxopts::value<bool>(print_mean), "MEAN")
+      ("v,stdev", "print stdev", cxxopts::value<bool>(print_stdev), "STDEV")
+      ("ast", "print abstract syntax", cxxopts::value<bool>(print_ast), "PRINT_AST")
+			;
+
+		options.parse_positional({"program", "data", "samples"});
+
+		auto result = options.parse(argc, argv);
+
+  } catch (const cxxopts::OptionException& e)
+  {
+		std::cout << "error parsing options: " << e.what() << std::endl;
+		exit(1);
+	}
+
+
+	//std::cout << print_mean << print_stdev << std::endl;
 
   std::ifstream input(filename);
-
-
   //input.open(filename, std::ifstream::in);
 
   std::string testProgram( (std::istreambuf_iterator<char>(input) ),
@@ -32,7 +70,8 @@ int main(int argc, char** args)
   {
     restan::parseStan(testProgram);
     std::cout<<"\n";
-    restan::pi.getLossStatement()->print();
+		if (print_ast)
+			restan::pi.getLossStatement()->print();
     std::cout<<"\n";
   }
   catch (restan::ParseError& e)
@@ -52,7 +91,7 @@ int main(int argc, char** args)
   if (restan::pi.numObservedData > 0)
   {
     std::cout << "Reading data" << std::endl;
-    if (restan::parseData(args[2]))
+    if (restan::parseData(datafilename.c_str()))
       return 2;
   }
   std::cout << "Beginning GHMCMC" << std::endl;

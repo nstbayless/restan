@@ -116,11 +116,11 @@ void* memoize(const Ast& sv, std::string production, void* proposed, bool dispos
 };
 
 void* eval(const Ast& sv) {
-  std::cout<<sv.name<<std::endl;
+  //std::cout<<sv.name<<std::endl;
   auto& ast = sv;
   if (ast.name == "Code")
   {
-    std::cout<<"took root production\n";
+    //std::cout<<"took root production\n";
     std::vector<restan::Statement*> topLevelBlocks;
     // clear output Expressions
     restan::pi.outputExpressions.resize(0);
@@ -394,7 +394,7 @@ void* eval(const Ast& sv) {
   };
   if (ast.name == "Statements")
   {
-    std::cout<< " statements -- " << sv.token << std::endl;
+    //std::cout<< " statements -- " << sv.token << std::endl;
     switch (sv.nodes.size() > 0)
     {
       case true:
@@ -418,7 +418,7 @@ void* eval(const Ast& sv) {
   };
   if (ast.name == "Statement")
   {
-    std::cout << "statement -- " << sv.token << std::endl;
+    //std::cout << "statement -- " << sv.token << std::endl;
     int choice = 4;
     if (sv.nodes.size() > 1)
       if (ast.nodes[1]->name .compare("Distribution") == 0)
@@ -570,7 +570,7 @@ void* eval(const Ast& sv) {
 
   if (ast.name == "Expression")
   {
-    std::cout<< "Expression: " << sv.token << std::endl;
+    //std::cout<< "Expression: " << sv.token << std::endl;
     Expression* expr = (Expression*)eval(*ast.nodes[0]);
     for (int i=1; i<sv.nodes.size(); i+=2)
     {
@@ -628,7 +628,7 @@ void* eval(const Ast& sv) {
 
   if (ast.name == "ExpressionFactor")
   {
-    std::cout<< "ExpressionFactor: " << sv.token << std::endl;
+    //std::cout<< "ExpressionFactor: " << sv.token << std::endl;
       return (Expression*)eval(*ast.nodes[0]);
   };
 
@@ -725,15 +725,15 @@ void restan::parseStan(std::string stanCode)
 
   p.enable_ast();
 
-  std::cout<< "about to parse\n";
+  //std::cout<< "about to parse\n";
 
   //p.enable_packrat_parsing();
   std::shared_ptr<peg::Ast> ast;
   if (p.parse(stanCode.c_str(), ast)) {
       ast = AstOptimizer(true).optimize(ast);
-      std::cout << ast_to_s(ast);
+      //std::cout << ast_to_s(ast);
       eval(*ast);
-      std::cout<<"parsed\n";
+      //std::cout<<"parsed\n";
   }
   else
   {
@@ -745,7 +745,7 @@ void restan::parseStan(std::string stanCode)
 // frees parsed expressions
 void restan::parseStanCleanup()
 {
-  std::cout<<"cleaning up "<<std::endl;
+  //std::cout<<"cleaning up "<<std::endl;
   for (Expression* expr : exHeap)
     delete(expr);
   for (Expression** expra : exArrayHeap)
